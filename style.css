@@ -3395,11 +3395,18 @@ body{
   max-height: none;
 }
 
-[data-theme="dark"] .gesetze-page .em-hero-label {
-  color: #D4C9B0;
+/* Gesetze-Hero: .em-hero nutzt var(--ink); im Dark Mode ist --ink hell — Hintergrund wie Body (--paper), nicht auf .gz-hero */
+[data-theme="dark"] .gesetze-page .em-hero {
+  background: var(--paper);
 }
-[data-theme="dark"] .gesetze-page .gz-hero .em-hero-title {
-  color: var(--paper);
+[data-theme="dark"] .gz-hero .gz-hero-eyebrow {
+  color: #c9a84c;
+}
+[data-theme="dark"] .gz-hero .gz-hero-title {
+  color: #f0ece0;
+}
+[data-theme="dark"] .gz-hero .gz-hero-desc {
+  color: #aaa8b8;
 }
 [data-theme="dark"] .gz-card {
   background: #1A1A1A;

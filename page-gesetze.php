@@ -54,13 +54,13 @@ get_template_part('template-parts/global/breaking-ticker');
 
 	<div class="em-hero gz-hero">
 		<div class="em-hero-inner">
-			<div class="em-hero-label">
+			<div class="em-hero-label gz-hero-eyebrow">
 				<?php echo rp_t('Parlament &amp; Recht', 'Parliament &amp; Law'); ?>
 			</div>
-			<h1 class="em-hero-title">
+			<h1 class="em-hero-title gz-hero-title">
 				<?php echo rp_t('Gesetzesänderungen', 'Legislative changes'); ?>
 			</h1>
-			<p class="em-hero-desc">
+			<p class="em-hero-desc gz-hero-desc">
 				<?php echo rp_t(
 					'Hier dokumentieren wir Änderungen an Gesetzestexten mit Kurzbeschreibung und Synopse. Abstimmungsdaten werden geladen, sobald du eine Änderung aufklappst.',
 					'We document changes to legislation with short summaries and synopses. Vote data loads when you expand an entry.'
