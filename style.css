@@ -2737,28 +2737,88 @@ body{
 
 .gz-card {
   border: 1px solid var(--rule);
-  border-left: 4px solid #C9A962;
+  border-left: 4px solid #c9a962;
   border-radius: 2px;
   background: var(--paper);
   margin-bottom: 16px;
-  transition: border-left-color 0.15s, box-shadow 0.15s;
+  transition: border-left-color 0.2s, box-shadow 0.15s;
+}
+.gz-card--border-default {
+  border-left-color: #c9a962;
+}
+.gz-card--border-expand {
+  border-left-color: #2d6a4f;
+}
+.gz-card--border-contract {
+  border-left-color: #9b2226;
+}
+.gz-card--border-balance {
+  border-left-color: #d4a017;
 }
 .gz-card[open] {
   box-shadow: 0 8px 28px rgba(15, 15, 15, 0.08);
-  border-left-color: var(--red);
 }
 .gz-card-summary {
   list-style: none;
   cursor: pointer;
   padding: 20px 48px 20px 20px;
   display: grid;
-  grid-template-columns: minmax(80px, 140px) 1fr;
-  gap: 8px 20px;
-  align-items: baseline;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: start;
   position: relative;
+}
+.gz-summary-top {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .gz-card-summary::-webkit-details-marker {
   display: none;
+}
+.gz-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gz-badge--zivil {
+  color: #1e4e8c;
+  background: rgba(30, 78, 140, 0.12);
+  border-color: rgba(30, 78, 140, 0.35);
+}
+.gz-badge--sozial {
+  color: #1b5e3a;
+  background: rgba(27, 94, 58, 0.12);
+  border-color: rgba(27, 94, 58, 0.35);
+}
+.gz-badge--steuer-arbeit {
+  color: #7a5c1a;
+  background: rgba(201, 169, 98, 0.2);
+  border-color: rgba(201, 169, 98, 0.5);
+}
+.gz-badge--straf {
+  color: #8b1538;
+  background: rgba(200, 16, 46, 0.1);
+  border-color: rgba(200, 16, 46, 0.35);
+}
+.gz-badge--verfassung {
+  color: #1a3a5c;
+  background: rgba(26, 58, 92, 0.15);
+  border-color: rgba(26, 58, 92, 0.4);
+}
+.gz-badge--bundes {
+  color: #5c5c5c;
+  background: rgba(90, 90, 90, 0.1);
+  border-color: rgba(90, 90, 90, 0.25);
 }
 .gz-kuerzel {
   font-family: 'IBM Plex Mono', monospace;
@@ -2769,9 +2829,12 @@ body{
   font-weight: 600;
 }
 .gz-datum {
+  grid-column: 2;
+  justify-self: end;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
   color: var(--mid);
+  text-align: right;
 }
 .gz-card-summary .gz-name {
   grid-column: 1 / -1;
@@ -2809,13 +2872,17 @@ body{
   color: var(--ink);
   margin: 16px 0 16px;
 }
-.gz-kontext-details {
+.gz-kontext-block {
   margin: 0 0 16px;
   border: 1px solid var(--rule);
   border-radius: 2px;
   background: rgba(212, 201, 176, 0.08);
 }
-.gz-kontext-summary {
+.gz-kontext-toggle {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -2823,10 +2890,18 @@ body{
   color: #9a7b3a;
   cursor: pointer;
   padding: 10px 14px;
-  list-style: none;
+  margin: 0;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
 }
-.gz-kontext-summary::-webkit-details-marker {
-  display: none;
+.gz-kontext-toggle:hover {
+  background: rgba(212, 201, 176, 0.12);
+  color: var(--ink);
+}
+.gz-kontext-panel[hidden] {
+  display: none !important;
 }
 .gz-kontext-body {
   font-family: 'Source Serif 4', serif;
@@ -2899,6 +2974,88 @@ body{
   max-height: 360px;
   overflow: auto;
 }
+.gz-diff-columns-wrap {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: rgba(15, 15, 15, 0.03);
+}
+.gz-diff-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.gz-diff-header-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border-bottom: 1px solid rgba(212, 201, 176, 0.35);
+}
+.gz-diff-header {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  font-weight: 500;
+}
+.gz-diff-header--old {
+  color: rgba(139, 40, 48, 0.95);
+  background: rgba(200, 16, 46, 0.08);
+  border-right: 1px solid rgba(212, 201, 176, 0.2);
+}
+.gz-diff-header--new {
+  color: rgba(35, 100, 72, 0.98);
+  background: rgba(45, 106, 79, 0.1);
+}
+.gz-diff-row--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border-bottom: 1px solid rgba(212, 201, 176, 0.25);
+}
+.gz-diff-row--split:last-child {
+  border-bottom: none;
+}
+.gz-diff-cell {
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.2em;
+}
+.gz-diff-cell--old {
+  background: rgba(200, 16, 46, 0.1);
+  border-right: 1px solid rgba(212, 201, 176, 0.2);
+  color: var(--ink);
+}
+.gz-diff-cell--new {
+  background: rgba(45, 106, 79, 0.12);
+  color: var(--ink);
+}
+.gz-diff-cell--empty {
+  background: transparent;
+}
+.gz-diff-row--context {
+  border-bottom: 1px solid rgba(212, 201, 176, 0.25);
+}
+.gz-diff-context-inner {
+  padding: 6px 10px;
+  color: var(--mid);
+  background: rgba(122, 112, 96, 0.08);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.gz-abstimmungen-pending {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgba(122, 112, 96, 0.85);
+  margin: 0;
+}
 
 .gz-abstimmungen-panel {
   margin-top: 8px;
@@ -2948,19 +3105,104 @@ body{
   background: #1A1A1A;
   border-color: #2A2A2A;
 }
+[data-theme="dark"] .gz-card--border-default {
+  border-left-color: #c9a962;
+}
+[data-theme="dark"] .gz-card--border-expand {
+  border-left-color: #40916c;
+}
+[data-theme="dark"] .gz-card--border-contract {
+  border-left-color: #e85d75;
+}
+[data-theme="dark"] .gz-card--border-balance {
+  border-left-color: #e9c46a;
+}
+[data-theme="dark"] .gz-badge--zivil {
+  color: #8cb4e8;
+  background: rgba(30, 78, 140, 0.25);
+  border-color: rgba(140, 180, 232, 0.35);
+}
+[data-theme="dark"] .gz-badge--sozial {
+  color: #6fdc9c;
+  background: rgba(27, 94, 58, 0.25);
+  border-color: rgba(111, 220, 156, 0.3);
+}
+[data-theme="dark"] .gz-badge--steuer-arbeit {
+  color: #e9c46a;
+  background: rgba(201, 169, 98, 0.12);
+  border-color: rgba(233, 196, 106, 0.35);
+}
+[data-theme="dark"] .gz-badge--straf {
+  color: #ff8fa3;
+  background: rgba(200, 16, 46, 0.18);
+  border-color: rgba(255, 143, 163, 0.35);
+}
+[data-theme="dark"] .gz-badge--verfassung {
+  color: #7eb8ff;
+  background: rgba(26, 58, 92, 0.35);
+  border-color: rgba(126, 184, 255, 0.3);
+}
+[data-theme="dark"] .gz-badge--bundes {
+  color: #9a9080;
+  background: rgba(90, 90, 90, 0.2);
+  border-color: rgba(154, 144, 128, 0.35);
+}
+[data-theme="dark"] .gz-diff-columns-wrap {
+  border-color: #2a2a2a;
+  background: #0f0f0f;
+}
+[data-theme="dark"] .gz-diff-cell--old {
+  background: rgba(200, 16, 46, 0.18);
+  border-right-color: #2a2a2a;
+  color: rgba(245, 240, 232, 0.92);
+}
+[data-theme="dark"] .gz-diff-cell--new {
+  background: rgba(45, 106, 79, 0.28);
+  color: rgba(245, 240, 232, 0.92);
+}
+[data-theme="dark"] .gz-diff-row--split,
+[data-theme="dark"] .gz-diff-row--context {
+  border-bottom-color: #2a2a2a;
+}
+[data-theme="dark"] .gz-diff-context-inner {
+  background: rgba(122, 112, 96, 0.12);
+  color: #9a9080;
+}
+[data-theme="dark"] .gz-abstimmungen-pending {
+  color: rgba(90, 80, 64, 0.95);
+}
 [data-theme="dark"] .gz-beschreibung {
   color: #D4C9B0;
 }
 [data-theme="dark"] .gz-card-summary .gz-name {
   color: #f5f0e8;
 }
-[data-theme="dark"] .gz-kontext-details {
+[data-theme="dark"] .gz-kontext-block {
   border-color: #2a2a2a;
   background: rgba(26, 26, 26, 0.6);
+}
+[data-theme="dark"] .gz-kontext-toggle {
+  color: #b8a070;
+}
+[data-theme="dark"] .gz-kontext-toggle:hover {
+  background: rgba(40, 40, 40, 0.9);
+  color: #f5f0e8;
 }
 [data-theme="dark"] .gz-kontext-body {
   color: #d4c9b0;
   border-top-color: #2a2a2a;
+}
+[data-theme="dark"] .gz-diff-header-row {
+  border-bottom-color: #2a2a2a;
+}
+[data-theme="dark"] .gz-diff-header--old {
+  color: rgba(255, 143, 163, 0.88);
+  background: rgba(200, 16, 46, 0.12);
+  border-right-color: #2a2a2a;
+}
+[data-theme="dark"] .gz-diff-header--new {
+  color: rgba(110, 200, 156, 0.92);
+  background: rgba(45, 106, 79, 0.18);
 }
 [data-theme="dark"] .gz-bgbl-link {
   color: #9a9080;
@@ -3068,12 +3310,32 @@ body{
     grid-template-columns: 1fr auto;
     padding-right: 44px;
   }
-  .gz-kuerzel {
+  .gz-summary-top {
     grid-column: 1;
   }
   .gz-datum {
     grid-column: 2;
     text-align: right;
+  }
+  .gz-diff-header-row {
+    grid-template-columns: 1fr;
+  }
+  .gz-diff-header--old {
+    border-right: none;
+    border-bottom: 1px solid rgba(212, 201, 176, 0.25);
+  }
+  [data-theme="dark"] .gz-diff-header--old {
+    border-bottom-color: #2a2a2a;
+  }
+  .gz-diff-row--split {
+    grid-template-columns: 1fr;
+  }
+  .gz-diff-cell--old {
+    border-right: none;
+    border-bottom: 1px solid rgba(212, 201, 176, 0.2);
+  }
+  [data-theme="dark"] .gz-diff-cell--old {
+    border-bottom-color: #2a2a2a;
   }
 }
 
