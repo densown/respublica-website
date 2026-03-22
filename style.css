@@ -2773,6 +2773,15 @@ body{
   font-size: 12px;
   color: var(--mid);
 }
+.gz-card-summary .gz-name {
+  grid-column: 1 / -1;
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+  margin-top: 4px;
+}
 .gz-chevron {
   position: absolute;
   right: 18px;
@@ -2799,6 +2808,57 @@ body{
   line-height: 1.65;
   color: var(--ink);
   margin: 16px 0 16px;
+}
+.gz-kontext-details {
+  margin: 0 0 16px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: rgba(212, 201, 176, 0.08);
+}
+.gz-kontext-summary {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a7b3a;
+  cursor: pointer;
+  padding: 10px 14px;
+  list-style: none;
+}
+.gz-kontext-summary::-webkit-details-marker {
+  display: none;
+}
+.gz-kontext-body {
+  font-family: 'Source Serif 4', serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  padding: 0 14px 12px;
+  border-top: 1px solid rgba(212, 201, 176, 0.35);
+}
+.gz-bgbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--mid);
+  margin: 0 0 16px;
+}
+.gz-bgbl-label {
+  color: #9a7b3a;
+  margin-right: 4px;
+}
+.gz-bgbl-link {
+  color: #7a6a50;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+}
+.gz-bgbl-link:hover {
+  color: var(--red);
+}
+.gz-diff-wrap {
+  margin-bottom: 4px;
 }
 .gz-btn-synopse {
   display: inline-block;
@@ -2890,6 +2950,23 @@ body{
 }
 [data-theme="dark"] .gz-beschreibung {
   color: #D4C9B0;
+}
+[data-theme="dark"] .gz-card-summary .gz-name {
+  color: #f5f0e8;
+}
+[data-theme="dark"] .gz-kontext-details {
+  border-color: #2a2a2a;
+  background: rgba(26, 26, 26, 0.6);
+}
+[data-theme="dark"] .gz-kontext-body {
+  color: #d4c9b0;
+  border-top-color: #2a2a2a;
+}
+[data-theme="dark"] .gz-bgbl-link {
+  color: #9a9080;
+}
+[data-theme="dark"] .gz-bgbl-link:hover {
+  color: #f5f0e8;
 }
 [data-theme="dark"] .gz-diff-pre {
   background: #0A0A0A;

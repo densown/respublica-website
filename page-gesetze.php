@@ -17,6 +17,9 @@ $gz_i18n = array(
 	'abstimmungenNone'   => rp_t('Keine Abstimmungs-ID vorhanden.', 'No poll ID available.'),
 	'abstimmungenEmpty'  => rp_t('Keine Abstimmungsdaten vorhanden.', 'No vote data available.'),
 	'noSynopse'          => rp_t('Keine Synopse hinterlegt.', 'No synopsis available.'),
+	'synopseLoading'     => rp_t('Lade Synopse…', 'Loading synopsis…'),
+	'kontextLabel'       => rp_t('Kontext', 'Context'),
+	'sourceLabel'        => rp_t('Quelle', 'Source'),
 );
 
 get_header();
@@ -154,21 +157,68 @@ get_template_part('template-parts/global/breaking-ticker');
 		return [];
 	}
 
+	function itemGesetzId(g) {
+		var v = pick(g, ['id']);
+		return v === '' ? '' : String(v);
+	}
 	function itemKuerzel(g) {
-		return pick(g, ['kuerzel', 'gesetz', 'short', 'law', 'slug', 'id']);
+		return String(pick(g, ['kuerzel']) || '');
+	}
+	function itemName(g) {
+		return String(pick(g, ['name']) || '');
 	}
 	function itemDatum(g) {
 		return pick(g, ['datum', 'date', 'stand', 'updated_at', 'created_at']);
 	}
-	function itemBeschreibung(g) {
-		return pick(g, ['beschreibung', 'description', 'text', 'summary', 'titel', 'title']);
+	function itemZusammenfassung(g) {
+		return pick(g, ['zusammenfassung', 'beschreibung', 'description', 'text', 'summary']);
 	}
-	function itemDiff(g) {
-		return pick(g, ['diff', 'synopse', 'aenderung', 'change', 'patch']);
+	function itemKontext(g) {
+		return pick(g, ['kontext']);
+	}
+	function itemBgblReferenz(g) {
+		return pick(g, ['bgbl_referenz', 'bgblReferenz']);
 	}
 	function itemPollId(g) {
 		var v = pick(g, ['poll_id', 'pollId', 'abstimmung_id', 'vote_id']);
 		return v === '' ? '' : String(v);
+	}
+
+	function extractDiffFromPayload(payload) {
+		if (payload == null) return '';
+		if (typeof payload === 'string') return payload;
+		/* API GET /api/gesetze/{id}: diff im JSON-Root, z. B. { "id": 1, "diff": "@@ -4492..." } */
+		if (typeof payload === 'object' && Object.prototype.hasOwnProperty.call(payload, 'diff')) {
+			var dRoot = payload.diff;
+			if (typeof dRoot === 'string') return dRoot;
+		}
+		if (typeof payload.synopse === 'string') return payload.synopse;
+		if (payload.data && typeof payload.data === 'object') {
+			var d = payload.data;
+			if (typeof d.diff === 'string') return d.diff;
+			if (typeof d.synopse === 'string') return d.synopse;
+		}
+		return '';
+	}
+
+	function renderBgblRef(ref) {
+		var s = String(ref == null ? '' : ref).trim();
+		if (!s) return '';
+		var label = esc(i18n.sourceLabel || 'Quelle');
+		if (/^https?:\/\//i.test(s)) {
+			return (
+				'<p class="gz-bgbl">' +
+				'<span class="gz-bgbl-label">' + label + ':</span> ' +
+				'<a href="' + esc(s) + '" target="_blank" rel="noopener noreferrer" class="gz-bgbl-link">' + esc(s) + '</a>' +
+				'</p>'
+			);
+		}
+		return (
+			'<p class="gz-bgbl">' +
+			'<span class="gz-bgbl-label">' + label + ':</span> ' +
+			'<span class="gz-bgbl-text">' + esc(s) + '</span>' +
+			'</p>'
+		);
 	}
 
 	function formatAbstimmungen(data) {
@@ -222,12 +272,82 @@ get_template_part('template-parts/global/breaking-ticker');
 			});
 	}
 
-	function bindCard(detail) {
+	function bindSynopseToggle(btn, syn) {
+		btn.addEventListener('click', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var open = syn.hasAttribute('hidden');
+			if (open) {
+				syn.removeAttribute('hidden');
+				btn.textContent = i18n.synopseHide || 'Hide';
+			} else {
+				syn.setAttribute('hidden', '');
+				btn.textContent = i18n.synopseShow || 'Show';
+			}
+		});
+	}
+
+	function loadDiffLazy(detail, gesetzId) {
+		var wrap = detail.querySelector('.gz-diff-wrap');
+		if (!wrap) return;
+		var st = wrap.getAttribute('data-diff-state');
+		if (st === 'done' || st === 'loading') return;
+		wrap.setAttribute('data-diff-state', 'loading');
+
+		var inner = wrap.querySelector('.gz-diff-inner');
+		if (!inner) return;
+
+		if (!gesetzId) {
+			inner.innerHTML = '<p class="gz-muted">' + esc(i18n.noSynopse) + '</p>';
+			wrap.setAttribute('data-diff-state', 'done');
+			return;
+		}
+
+		inner.innerHTML = '<p class="gz-muted">' + esc(i18n.synopseLoading || '') + '</p>';
+
+		fetch(base + '/api/gesetze/' + encodeURIComponent(gesetzId))
+			.then(function (r) {
+				if (!r.ok) throw new Error('HTTP ' + r.status);
+				var ct = (r.headers.get('content-type') || '').toLowerCase();
+				if (ct.indexOf('application/json') !== -1) return r.json();
+				return r.text().then(function (t) {
+					return { __plain: t };
+				});
+			})
+			.then(function (payload) {
+				var diffStr = '';
+				if (payload && typeof payload.__plain === 'string') {
+					diffStr = payload.__plain.trim();
+				} else {
+					diffStr = String(extractDiffFromPayload(payload) || '').trim();
+				}
+				if (!diffStr) {
+					inner.innerHTML = '<p class="gz-muted">' + esc(i18n.noSynopse) + '</p>';
+					return;
+				}
+				inner.innerHTML =
+					'<button type="button" class="gz-btn-synopse em-btn-secondary">' + esc(i18n.synopseShow) + '</button>' +
+					'<div class="gz-synopse" hidden><pre class="gz-diff-pre">' + esc(diffStr) + '</pre></div>';
+				var btn = inner.querySelector('.gz-btn-synopse');
+				var syn = inner.querySelector('.gz-synopse');
+				if (btn && syn) bindSynopseToggle(btn, syn);
+			})
+			.catch(function () {
+				inner.innerHTML = '<p class="gz-error">' + esc(i18n.loadError) + '</p>';
+			})
+			.finally(function () {
+				wrap.setAttribute('data-diff-state', 'done');
+			});
+	}
+
+	function bindCard(detail, gesetzId) {
 		var pollId = detail.getAttribute('data-poll-id') || '';
 		var abstLoaded = false;
 
 		detail.addEventListener('toggle', function () {
-			if (!detail.open || abstLoaded) return;
+			if (!detail.open) return;
+			loadDiffLazy(detail, gesetzId);
+			if (abstLoaded) return;
 			abstLoaded = true;
 			var panel = ensureAbstimmungenPanel(detail);
 			if (!panel) return;
@@ -238,22 +358,6 @@ get_template_part('template-parts/global/breaking-ticker');
 			}
 			fetchAbstimmungen(detail, pollId);
 		});
-
-		var btn = detail.querySelector('.gz-btn-synopse');
-		var syn = detail.querySelector('.gz-synopse');
-		if (btn && syn) {
-			btn.addEventListener('click', function (e) {
-				e.preventDefault();
-				var open = syn.hasAttribute('hidden');
-				if (open) {
-					syn.removeAttribute('hidden');
-					btn.textContent = i18n.synopseHide || 'Hide';
-				} else {
-					syn.setAttribute('hidden', '');
-					btn.textContent = i18n.synopseShow || 'Show';
-				}
-			});
-		}
 	}
 
 	function render(items) {
@@ -268,42 +372,57 @@ get_template_part('template-parts/global/breaking-ticker');
 
 		for (var i = 0; i < items.length; i++) {
 			var g = items[i] || {};
+			var gesetzId = itemGesetzId(g);
 			var kuerzel = itemKuerzel(g);
+			var name = itemName(g);
 			var datum = itemDatum(g);
-			var beschreibung = itemBeschreibung(g);
-			var diffRaw = itemDiff(g);
+			var zusammenfassung = itemZusammenfassung(g);
+			var kontext = String(itemKontext(g) || '').trim();
+			var bgbl = itemBgblReferenz(g);
 			var pollId = itemPollId(g);
-
-			var diffStr = diffRaw === '' ? '' : String(diffRaw);
 
 			var d = document.createElement('details');
 			d.className = 'gz-card';
+			if (gesetzId) d.setAttribute('data-gesetz-id', gesetzId);
 			if (pollId) d.setAttribute('data-poll-id', pollId);
 
 			var sum = document.createElement('summary');
 			sum.className = 'gz-card-summary';
+			var nameHtml = name
+				? '<span class="gz-name">' + esc(name) + '</span>'
+				: '';
 			sum.innerHTML =
 				'<span class="gz-kuerzel">' + esc(kuerzel || '—') + '</span>' +
 				'<span class="gz-datum">' + esc(datum || '—') + '</span>' +
+				nameHtml +
 				'<span class="gz-chevron" aria-hidden="true"></span>';
+
+			var bodyHtml =
+				'<p class="gz-beschreibung">' + esc(zusammenfassung || '—') + '</p>';
+
+			if (kontext) {
+				bodyHtml +=
+					'<details class="gz-kontext-details">' +
+					'<summary class="gz-kontext-summary">' + esc(i18n.kontextLabel || 'Kontext') + '</summary>' +
+					'<div class="gz-kontext-body">' + esc(kontext) + '</div>' +
+					'</details>';
+			}
+
+			bodyHtml += renderBgblRef(bgbl);
+
+			bodyHtml +=
+				'<div class="gz-diff-wrap">' +
+				'<div class="gz-diff-inner"></div>' +
+				'</div>';
 
 			var body = document.createElement('div');
 			body.className = 'gz-card-body';
-			var bodyHtml =
-				'<p class="gz-beschreibung">' + esc(beschreibung) + '</p>';
-			if (diffStr) {
-				bodyHtml +=
-					'<button type="button" class="gz-btn-synopse em-btn-secondary">' + esc(i18n.synopseShow) + '</button>' +
-					'<div class="gz-synopse" hidden><pre class="gz-diff-pre">' + esc(diffStr) + '</pre></div>';
-			} else {
-				bodyHtml += '<p class="gz-muted">' + esc(i18n.noSynopse) + '</p>';
-			}
 			body.innerHTML = bodyHtml;
 
 			d.appendChild(sum);
 			d.appendChild(body);
 			root.appendChild(d);
-			bindCard(d);
+			bindCard(d, gesetzId);
 		}
 	}
 
