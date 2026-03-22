@@ -29,6 +29,19 @@ $gz_i18n = array(
 	'badge_straf'        => rp_t('Strafrecht', 'Criminal law'),
 	'badge_verfassung'   => rp_t('Verfassungsrecht', 'Constitutional law'),
 	'badge_bundes'       => rp_t('Bundesrecht', 'Federal law'),
+	'toolbarDomain'      => rp_t('Rechtsgebiet', 'Legal area'),
+	'toolbarSearch'      => rp_t('Suche (Kürzel)', 'Search (abbreviation)'),
+	'toolbarSearchPh'    => rp_t('z. B. BGB, StGB …', 'e.g. BGB, StGB …'),
+	'sortLabel'          => rp_t('Sortierung', 'Sort'),
+	'sortNew'            => rp_t('Neueste zuerst', 'Newest first'),
+	'sortOld'            => rp_t('Älteste zuerst', 'Oldest first'),
+	'pagerPrev'          => rp_t('← Zurück', '← Back'),
+	'pagerNext'          => rp_t('Weiter →', 'Next →'),
+	'filterEmpty'        => rp_t('Keine Einträge für die aktuelle Auswahl.', 'No entries for the current selection.'),
+	'pagerMetaTpl'       => rp_t('Seite {p} von {tp} · {n} Einträge gesamt', 'Page {p} of {tp} · {n} entries total'),
+	'pagerSeite'         => rp_t('Seite', 'Page'),
+	'pagerVon'           => rp_t('von', 'of'),
+	'pagerEntriesTotal'  => rp_t('Einträge gesamt', 'entries total'),
 );
 
 get_header();
@@ -72,12 +85,64 @@ get_template_part('template-parts/global/breaking-ticker');
 			</p>
 
 			<div
-				id="gz-root"
-				class="gz-root"
+				id="gz-list-app"
+				class="gz-list-app"
 				data-api-base="<?php echo esc_attr($gz_api_base); ?>"
 				data-i18n="<?php echo esc_attr(wp_json_encode($gz_i18n)); ?>"
 			>
-				<p class="gz-status gz-loading"><?php echo esc_html($gz_i18n['loading']); ?></p>
+				<div id="gz-app-error" class="gz-app-error" hidden role="alert"></div>
+
+				<div id="gz-toolbar" class="gz-toolbar" hidden>
+					<div class="gz-field gz-field--search">
+						<label for="gz-filter-search"><?php echo esc_html($gz_i18n['toolbarSearch']); ?></label>
+						<div class="gz-search-wrap">
+							<svg class="gz-search-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+								<circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+								<path d="m14 14 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+							</svg>
+							<input type="search" id="gz-filter-search" placeholder="<?php echo esc_attr($gz_i18n['toolbarSearchPh']); ?>" autocomplete="off" />
+						</div>
+					</div>
+					<div class="gz-field gz-field--filter">
+						<label for="gz-filter-domain"><?php echo esc_html($gz_i18n['toolbarDomain']); ?></label>
+						<select id="gz-filter-domain" aria-label="<?php echo esc_attr($gz_i18n['toolbarDomain']); ?>">
+							<option value="all"><?php echo esc_html(rp_t('Alle', 'All')); ?></option>
+							<option value="zivil"><?php echo esc_html($gz_i18n['badge_zivil']); ?></option>
+							<option value="sozial"><?php echo esc_html($gz_i18n['badge_sozial']); ?></option>
+							<option value="steuer_arbeit"><?php echo esc_html($gz_i18n['badge_steuer_arbeit']); ?></option>
+							<option value="straf"><?php echo esc_html($gz_i18n['badge_straf']); ?></option>
+							<option value="verfassung"><?php echo esc_html($gz_i18n['badge_verfassung']); ?></option>
+							<option value="bundes"><?php echo esc_html($gz_i18n['badge_bundes']); ?></option>
+						</select>
+					</div>
+					<div class="gz-field gz-sort-group">
+						<span class="gz-sort-label"><?php echo esc_html($gz_i18n['sortLabel']); ?></span>
+						<div class="gz-sort-toggles" role="group" aria-label="<?php echo esc_attr($gz_i18n['sortLabel']); ?>">
+							<button type="button" class="gz-btn-sort gz-btn-sort-active" id="gz-sort-new" data-desc="true"
+								aria-label="<?php echo esc_attr($gz_i18n['sortNew']); ?>"
+								title="<?php echo esc_attr($gz_i18n['sortNew']); ?>">
+								<span class="gz-sort-icon" aria-hidden="true">↓</span>
+							</button>
+							<button type="button" class="gz-btn-sort" id="gz-sort-old" data-desc="false"
+								aria-label="<?php echo esc_attr($gz_i18n['sortOld']); ?>"
+								title="<?php echo esc_attr($gz_i18n['sortOld']); ?>">
+								<span class="gz-sort-icon" aria-hidden="true">↑</span>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div id="gz-cards" class="gz-cards"></div>
+
+				<div id="gz-pager" class="gz-pager" hidden>
+					<span class="gz-pager-meta" id="gz-pager-meta"></span>
+					<div class="gz-pager-nav">
+						<button type="button" class="gz-btn-page" id="gz-btn-prev"><?php echo esc_html($gz_i18n['pagerPrev']); ?></button>
+						<button type="button" class="gz-btn-page" id="gz-btn-next"><?php echo esc_html($gz_i18n['pagerNext']); ?></button>
+					</div>
+				</div>
+
+				<p id="gz-loading" class="gz-status gz-loading"><?php echo esc_html($gz_i18n['loading']); ?></p>
 			</div>
 		</div>
 	</div>
@@ -132,14 +197,101 @@ get_template_part('template-parts/global/breaking-ticker');
 
 <script>
 (function () {
-	var root = document.getElementById('gz-root');
-	if (!root) return;
+	var listApp = document.getElementById('gz-list-app');
+	if (!listApp) return;
+	var cards = document.getElementById('gz-cards');
+	if (!cards) return;
 
-	var base = (root.getAttribute('data-api-base') || '').replace(/\/$/, '');
+	var base = (listApp.getAttribute('data-api-base') || '').replace(/\/$/, '');
 	var i18n = {};
 	try {
-		i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+		i18n = JSON.parse(listApp.getAttribute('data-i18n') || '{}');
 	} catch (e) {}
+
+	var PAGE_SIZE = 20;
+	var rawData = [];
+	var sortDesc = true;
+	var filterKey = 'all';
+	var searchQuery = '';
+	var page = 1;
+
+	var el = {
+		loading: document.getElementById('gz-loading'),
+		error: document.getElementById('gz-app-error'),
+		toolbar: document.getElementById('gz-toolbar'),
+		pager: document.getElementById('gz-pager'),
+		pagerMeta: document.getElementById('gz-pager-meta'),
+		filterDomain: document.getElementById('gz-filter-domain'),
+		filterSearch: document.getElementById('gz-filter-search'),
+		sortNew: document.getElementById('gz-sort-new'),
+		sortOld: document.getElementById('gz-sort-old'),
+		btnPrev: document.getElementById('gz-btn-prev'),
+		btnNext: document.getElementById('gz-btn-next'),
+	};
+
+	function showError(msg) {
+		if (!el.error) return;
+		el.error.textContent = msg || '';
+		el.error.hidden = !msg;
+	}
+
+	function getFilteredSorted() {
+		var rows = rawData.slice();
+		if (filterKey !== 'all') {
+			rows = rows.filter(function (r) {
+				return rechtGebietFromKuerzel(itemKuerzel(r)) === filterKey;
+			});
+		}
+		var q = searchQuery.trim().toLowerCase();
+		if (q) {
+			rows = rows.filter(function (r) {
+				var k = (itemKuerzel(r) || '').toLowerCase();
+				var n = (itemName(r) || '').toLowerCase();
+				return k.indexOf(q) !== -1 || n.indexOf(q) !== -1;
+			});
+		}
+		rows.sort(function (a, b) {
+			var da = itemDatum(a) || '';
+			var db = itemDatum(b) || '';
+			var cmp = sortDesc ? db.localeCompare(da) : da.localeCompare(db);
+			if (cmp !== 0) return cmp;
+			var idb = parseInt(itemGesetzId(b), 10) || 0;
+			var ida = parseInt(itemGesetzId(a), 10) || 0;
+			return idb - ida;
+		});
+		return rows;
+	}
+
+	function pagerMetaHtml(p, tp, n) {
+		if (i18n.pagerSeite && i18n.pagerVon && i18n.pagerEntriesTotal) {
+			return (
+				'<span class="gz-pager-primary">' +
+				'<span class="gz-pager-w">' +
+				esc(i18n.pagerSeite) +
+				'</span> ' +
+				'<strong class="gz-pager-cur">' +
+				esc(String(p)) +
+				'</strong> ' +
+				'<span class="gz-pager-w">' +
+				esc(i18n.pagerVon) +
+				'</span> ' +
+				'<span class="gz-pager-tmax">' +
+				esc(String(tp)) +
+				'</span>' +
+				'</span>' +
+				'<span class="gz-pager-sep" aria-hidden="true">·</span>' +
+				'<span class="gz-pager-n">' +
+				esc(String(n)) +
+				' <span class="gz-pager-w">' +
+				esc(i18n.pagerEntriesTotal) +
+				'</span></span>'
+			);
+		}
+		var tpl = i18n.pagerMetaTpl || '';
+		return esc(
+			tpl.replace(/\{p\}/g, String(p)).replace(/\{tp\}/g, String(tp)).replace(/\{n\}/g, String(n))
+		);
+	}
 
 	function getLang() {
 		return document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'de';
@@ -611,18 +763,44 @@ get_template_part('template-parts/global/breaking-ticker');
 		});
 	}
 
-	function render(items) {
-		root.innerHTML = '';
-		if (!items.length) {
-			var empty = document.createElement('p');
-			empty.className = 'gz-empty';
-			empty.textContent = i18n.empty || '';
-			root.appendChild(empty);
+	function renderPage() {
+		cards.innerHTML = '';
+		if (!rawData.length) {
+			var emptyAll = document.createElement('p');
+			emptyAll.className = 'gz-empty';
+			emptyAll.textContent = i18n.empty || '';
+			cards.appendChild(emptyAll);
+			if (el.pagerMeta) el.pagerMeta.innerHTML = '';
+			if (el.btnPrev) el.btnPrev.disabled = true;
+			if (el.btnNext) el.btnNext.disabled = true;
 			return;
 		}
 
-		for (var i = 0; i < items.length; i++) {
-			var g = items[i] || {};
+		var all = getFilteredSorted();
+		var total = all.length;
+		var totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+		if (page > totalPages) page = totalPages;
+		if (page < 1) page = 1;
+		var start = (page - 1) * PAGE_SIZE;
+		var slice = all.slice(start, start + PAGE_SIZE);
+
+		if (!total) {
+			var emptyF = document.createElement('p');
+			emptyF.className = 'gz-empty';
+			emptyF.textContent = i18n.filterEmpty || '';
+			cards.appendChild(emptyF);
+			if (el.pagerMeta) el.pagerMeta.innerHTML = '';
+			if (el.btnPrev) el.btnPrev.disabled = true;
+			if (el.btnNext) el.btnNext.disabled = true;
+			return;
+		}
+
+		if (el.pagerMeta) el.pagerMeta.innerHTML = pagerMetaHtml(page, totalPages, total);
+		if (el.btnPrev) el.btnPrev.disabled = page <= 1;
+		if (el.btnNext) el.btnNext.disabled = page >= totalPages || total === 0;
+
+		for (var i = 0; i < slice.length; i++) {
+			var g = slice[i] || {};
 			var gesetzId = itemGesetzId(g);
 			var kuerzel = itemKuerzel(g);
 			var name = itemName(g);
@@ -687,9 +865,56 @@ get_template_part('template-parts/global/breaking-ticker');
 
 			d.appendChild(sum);
 			d.appendChild(body);
-			root.appendChild(d);
+			cards.appendChild(d);
 			bindCard(d, gesetzId);
 		}
+	}
+
+	function onFilterChange() {
+		filterKey = el.filterDomain ? el.filterDomain.value : 'all';
+		searchQuery = el.filterSearch ? el.filterSearch.value : '';
+		page = 1;
+		renderPage();
+	}
+
+	if (el.filterDomain) el.filterDomain.addEventListener('change', onFilterChange);
+	if (el.filterSearch) el.filterSearch.addEventListener('input', onFilterChange);
+
+	if (el.sortNew) {
+		el.sortNew.addEventListener('click', function () {
+			sortDesc = true;
+			if (el.sortNew) el.sortNew.classList.add('gz-btn-sort-active');
+			if (el.sortOld) el.sortOld.classList.remove('gz-btn-sort-active');
+			page = 1;
+			renderPage();
+		});
+	}
+	if (el.sortOld) {
+		el.sortOld.addEventListener('click', function () {
+			sortDesc = false;
+			if (el.sortOld) el.sortOld.classList.add('gz-btn-sort-active');
+			if (el.sortNew) el.sortNew.classList.remove('gz-btn-sort-active');
+			page = 1;
+			renderPage();
+		});
+	}
+	if (el.btnPrev) {
+		el.btnPrev.addEventListener('click', function () {
+			if (page > 1) {
+				page -= 1;
+				renderPage();
+			}
+		});
+	}
+	if (el.btnNext) {
+		el.btnNext.addEventListener('click', function () {
+			var all = getFilteredSorted();
+			var tp = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+			if (page < tp) {
+				page += 1;
+				renderPage();
+			}
+		});
 	}
 
 	fetch(base + '/api/gesetze')
@@ -698,10 +923,17 @@ get_template_part('template-parts/global/breaking-ticker');
 			return r.json();
 		})
 		.then(function (data) {
-			render(normalizeList(data));
+			rawData = normalizeList(data);
+			if (el.loading) el.loading.hidden = true;
+			if (el.toolbar) el.toolbar.hidden = false;
+			if (el.pager) el.pager.hidden = false;
+			showError('');
+			page = 1;
+			renderPage();
 		})
 		.catch(function () {
-			root.innerHTML = '<p class="gz-error">' + esc(i18n.loadError) + '</p>';
+			if (el.loading) el.loading.hidden = true;
+			showError(i18n.loadError || '');
 		});
 })();
 </script>
