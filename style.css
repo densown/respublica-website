@@ -3172,6 +3172,16 @@ body{
   color: var(--ink);
   margin: 16px 0 16px;
 }
+.gz-ai-disclaimer {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--mid);
+  opacity: 0.72;
+  margin: -4px 0 16px;
+}
 .gz-kontext-block {
   margin: 0 0 16px;
   border: 1px solid var(--rule);
@@ -3200,8 +3210,11 @@ body{
   background: rgba(212, 201, 176, 0.12);
   color: var(--ink);
 }
-.gz-kontext-panel[hidden] {
-  display: none !important;
+.gz-kontext-panel {
+  display: none;
+}
+.gz-kontext-panel.gz-kontext-panel--open {
+  display: block;
 }
 .gz-kontext-body {
   font-family: 'Source Serif 4', serif;
@@ -3481,6 +3494,10 @@ body{
 [data-theme="dark"] .gz-beschreibung {
   color: #D4C9B0;
 }
+[data-theme="dark"] .gz-ai-disclaimer {
+  color: #8a8274;
+  opacity: 0.85;
+}
 [data-theme="dark"] .gz-card-summary .gz-name {
   color: #f5f0e8;
 }
@@ -3709,4 +3726,324 @@ body{
   .em-hero-inner, .em-features-wrap, .em-upcoming-wrap { padding-left: 16px; padding-right: 16px; }
   .em-embed-placeholder { margin: 0 16px; }
   .em-wip-inner { padding: 0 16px; font-size: 10px; }
+}
+
+/* Tabs: Gesetzesänderungen / Rechtsprechung */
+.gz-tabs {
+  margin: 0 0 24px;
+}
+.gz-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.gz-tab-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 12px 18px;
+  min-height: 44px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  transition: background 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s, transform 0.12s;
+}
+.gz-tab-btn:hover:not(:disabled) {
+  border-color: #c9a962;
+  background: rgba(201, 169, 98, 0.2);
+  box-shadow: 0 2px 6px rgba(15, 15, 15, 0.08);
+}
+.gz-tab-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.gz-tab-btn[aria-selected="true"],
+.gz-tab-btn.gz-tab-btn--active {
+  border-color: #c9a962;
+  background: rgba(201, 169, 98, 0.18);
+  box-shadow: 0 2px 14px rgba(15, 15, 15, 0.06);
+  color: var(--ink);
+}
+.gz-tab-btn--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.gz-tab-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(200, 16, 46, 0.35);
+  background: rgba(200, 16, 46, 0.12);
+  color: var(--red);
+}
+.gz-tabpanel[hidden] {
+  display: none !important;
+}
+
+/* Rechtsprechung Tab */
+.gz-urteile-wrap {
+  overflow-x: hidden;
+}
+.gz-urteile-inner {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 64px;
+}
+.gz-urteile-app {
+  width: 100%;
+}
+
+.gz-urteile-filter-toggle {
+  width: 100%;
+  display: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 44px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 12px 16px;
+  margin: 0 0 14px;
+  cursor: pointer;
+}
+
+.gz-urteile-filter-panel {
+  margin-bottom: 32px;
+}
+
+.gz-urteile-skeleton {
+  margin: 16px 0 12px;
+}
+.gz-skeleton-card {
+  height: 180px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: rgba(212, 201, 176, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.gz-skeleton-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: gzShimmer 1.25s infinite;
+}
+@keyframes gzShimmer {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(250%); }
+}
+
+.gz-urteile-card {
+  padding: 0;
+}
+.gz-urteile-card-top {
+  padding: 20px 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.gz-urteile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.gz-urteile-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--mid);
+  margin-left: auto;
+  text-align: right;
+}
+.gz-urteile-card .gz-card-body {
+  padding-top: 12px;
+}
+.gz-urteile-az {
+  margin: 2px 0 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.gz-urteile-type {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--mid);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.gz-badge--court {
+  color: var(--ink);
+  background: rgba(212, 201, 176, 0.22);
+  border-color: rgba(212, 201, 176, 0.5);
+}
+.gz-badge--verwaltungsrecht {
+  color: #2d6a4f;
+  background: rgba(45, 106, 79, 0.12);
+  border-color: rgba(45, 106, 79, 0.35);
+}
+.gz-badge--oeffentliches-recht {
+  color: #1a3a5c;
+  background: rgba(26, 58, 92, 0.12);
+  border-color: rgba(26, 58, 92, 0.35);
+}
+.gz-badge--arbeitsrecht {
+  color: #7a5c1a;
+  background: rgba(122, 92, 26, 0.14);
+  border-color: rgba(122, 92, 26, 0.35);
+}
+.gz-badge--patentrecht {
+  color: #3a5a7a;
+  background: rgba(58, 90, 122, 0.12);
+  border-color: rgba(58, 90, 122, 0.35);
+}
+
+.gz-urteile-laws-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.gz-urteile-law-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mid);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 8px 12px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gz-urteile-law-chip:hover {
+  background: rgba(212, 201, 176, 0.14);
+  color: var(--ink);
+  border-color: rgba(201, 169, 98, 0.5);
+}
+
+.gz-urteile-collapses {
+  margin-top: 12px;
+}
+.gz-urteile-collapse-block {
+  margin: 0 0 16px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: rgba(212, 201, 176, 0.08);
+}
+.gz-urteile-collapse-toggle {
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #9a7b3a;
+  cursor: pointer;
+  padding: 12px 14px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+}
+.gz-urteile-collapse-toggle:hover {
+  background: rgba(212, 201, 176, 0.12);
+  color: var(--ink);
+}
+.gz-urteile-collapse-panel {
+  padding: 0;
+  border-top: 1px solid rgba(212, 201, 176, 0.35);
+}
+.gz-urteile-collapse-body {
+  font-family: 'Source Serif 4', serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink);
+  padding: 0 14px 12px;
+  word-break: break-word;
+}
+
+.gz-urteile-fulltext-row {
+  margin-top: 4px;
+}
+.gz-urteile-fulltext-link {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mid);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.gz-urteile-fulltext-link:hover {
+  color: var(--red);
+}
+
+@media (min-width: 768px) {
+  .gz-urteile-filter-toggle { display: none; }
+  .gz-urteile-filter-panel { display: grid; }
+}
+
+@media (max-width: 767px) {
+  .gz-urteile-filter-toggle { display: block; }
+  .gz-urteile-filter-panel { display: none; }
+  .gz-urteile-filter-panel--open { display: grid; }
+  .gz-tabs-nav { gap: 10px; }
+  .gz-urteile-date { width: 100%; text-align: left; }
+}
+
+[data-theme="dark"] .gz-urteile-skeleton .gz-skeleton-card {
+  background: rgba(26, 26, 26, 0.65);
+  border-color: rgba(42, 42, 42, 1);
+}
+[data-theme="dark"] .gz-badge--court {
+  color: rgba(245, 240, 232, 0.92);
+  background: rgba(212, 201, 176, 0.12);
+  border-color: rgba(212, 201, 176, 0.25);
+}
+[data-theme="dark"] .gz-badge--verwaltungsrecht {
+  color: #8fe3b3;
+  background: rgba(45, 106, 79, 0.22);
+  border-color: rgba(143, 227, 179, 0.28);
+}
+[data-theme="dark"] .gz-badge--oeffentliches-recht {
+  color: #7eb8ff;
+  background: rgba(26, 58, 92, 0.35);
+  border-color: rgba(126, 184, 255, 0.3);
+}
+[data-theme="dark"] .gz-badge--arbeitsrecht {
+  color: #e9c46a;
+  background: rgba(122, 92, 26, 0.2);
+  border-color: rgba(233, 196, 106, 0.3);
+}
+[data-theme="dark"] .gz-badge--patentrecht {
+  color: #b9d5ff;
+  background: rgba(58, 90, 122, 0.24);
+  border-color: rgba(185, 213, 255, 0.28);
 }
