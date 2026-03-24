@@ -17,6 +17,8 @@ $gz_i18n = array(
 	'abstimmungenNone'   => rp_t('Keine Abstimmungs-ID vorhanden.', 'No poll ID available.'),
 	'abstimmungenPending' => rp_t('Abstimmungsdaten folgen.', 'Vote data to follow.'),
 	'abstimmungenEmpty'  => rp_t('Keine Abstimmungsdaten vorhanden.', 'No vote data available.'),
+	'abstimmungenParty'  => rp_t('Partei', 'Party'),
+	'abstimmungenAbstained' => rp_t('Enthalten', 'Abstained'),
 	'noSynopse'          => rp_t('Keine Synopse hinterlegt.', 'No synopsis available.'),
 	'synopseLoading'     => rp_t('Lade Synopse…', 'Loading synopsis…'),
 	'kontextLabel'       => rp_t('Kontext', 'Context'),
@@ -35,9 +37,11 @@ $gz_i18n = array(
 	'toolbarDomain'      => rp_t('Rechtsgebiet', 'Legal area'),
 	'toolbarSearch'      => rp_t('Suche (Kürzel)', 'Search (abbreviation)'),
 	'toolbarSearchPh'    => rp_t('z. B. BGB, StGB …', 'e.g. BGB, StGB …'),
+	'toolbarVotesOnly'   => rp_t('Nur mit Abstimmungsdaten', 'With voting data only'),
 	'sortLabel'          => rp_t('Sortierung', 'Sort'),
 	'sortNew'            => rp_t('Neueste zuerst', 'Newest first'),
 	'sortOld'            => rp_t('Älteste zuerst', 'Oldest first'),
+	'sortVotesFirst'     => rp_t('Abstimmung zuerst', 'Votes first'),
 	'pagerPrev'          => rp_t('← Zurück', '← Back'),
 	'pagerNext'          => rp_t('Weiter →', 'Next →'),
 	'filterEmpty'        => rp_t('Keine Einträge für die aktuelle Auswahl.', 'No entries for the current selection.'),
@@ -50,6 +54,12 @@ $gz_i18n = array(
 	'tabRechtsprechung'  => rp_t('Rechtsprechung', 'Case Law'),
 	'tabEuLaw'           => rp_t('EU-Recht', 'EU Law'),
 	'tabEuComingSoon'    => rp_t('Demnächst', 'Coming Soon'),
+	'heroTitle'          => rp_t('Recht & Daten', 'Law & Data'),
+	'heroSubtitle'       => rp_t('Dein Werkzeug für politische Transparenz', 'Your tool for political transparency'),
+	'heroDescription'    => rp_t(
+		"Hier findest du tagesaktuelle Gesetzesänderungen mit Synopse, Abstimmungsverhalten aller Bundestagsfraktionen und KI-Zusammenfassungen in verständlicher Sprache. Im zweiten Tab verfolgst du aktuelle Urteile der Bundesgerichte -- von BGH bis BVerfG -- mit Tenor und Auswirkung auf den Alltag. EU-Recht folgt in Kürze.",
+		"Track daily changes to German federal law with side-by-side synopses, voting records from all Bundestag parties, and AI-generated plain-language summaries. The second tab covers recent rulings from Germany's highest courts -- from the BGH to the BVerfG -- with verdict summaries and real-world impact. EU law coming soon."
+	),
 
 	'urteileSectionLabel' => rp_t('Rechtsprechung', 'Case Law'),
 	'urteileFilterExpand' => rp_t('Filter ▾', 'Filter ▾'),
@@ -87,16 +97,13 @@ get_template_part('template-parts/global/breaking-ticker');
 	<div class="em-hero gz-hero">
 		<div class="em-hero-inner">
 			<div class="em-hero-label gz-hero-eyebrow">
-				<?php echo rp_t('Parlament &amp; Recht', 'Parliament &amp; Law'); ?>
+				<?php echo esc_html($gz_i18n['heroTitle']); ?>
 			</div>
 			<h1 class="em-hero-title gz-hero-title">
-				<?php echo rp_t('Gesetzesänderungen', 'Legislative changes'); ?>
+				<?php echo esc_html($gz_i18n['heroSubtitle']); ?>
 			</h1>
 			<p class="em-hero-desc gz-hero-desc">
-				<?php echo rp_t(
-					'Hier dokumentieren wir Änderungen an Gesetzestexten mit Kurzbeschreibung und Synopse. Abstimmungsdaten werden geladen, sobald du eine Änderung aufklappst.',
-					'We document changes to legislation with short summaries and synopses. Vote data loads when you expand an entry.'
-				); ?>
+				<?php echo esc_html($gz_i18n['heroDescription']); ?>
 			</p>
 		</div>
 	</div>
@@ -164,6 +171,10 @@ get_template_part('template-parts/global/breaking-ticker');
 							<option value="bundes"><?php echo esc_html($gz_i18n['badge_bundes']); ?></option>
 						</select>
 					</div>
+					<div class="gz-field gz-field--toggle">
+						<label for="gz-filter-votes-only"><?php echo esc_html($gz_i18n['toolbarVotesOnly']); ?></label>
+						<input type="checkbox" id="gz-filter-votes-only" />
+					</div>
 					<div class="gz-field gz-sort-group">
 						<span class="gz-sort-label"><?php echo esc_html($gz_i18n['sortLabel']); ?></span>
 						<div class="gz-sort-toggles" role="group" aria-label="<?php echo esc_attr($gz_i18n['sortLabel']); ?>">
@@ -176,6 +187,11 @@ get_template_part('template-parts/global/breaking-ticker');
 								aria-label="<?php echo esc_attr($gz_i18n['sortOld']); ?>"
 								title="<?php echo esc_attr($gz_i18n['sortOld']); ?>">
 								<span class="gz-sort-icon" aria-hidden="true">↑</span>
+							</button>
+							<button type="button" class="gz-btn-sort" id="gz-sort-votes" data-sort="votes"
+								aria-label="<?php echo esc_attr($gz_i18n['sortVotesFirst']); ?>"
+								title="<?php echo esc_attr($gz_i18n['sortVotesFirst']); ?>">
+								<span class="gz-sort-icon" aria-hidden="true">★</span>
 							</button>
 						</div>
 					</div>
@@ -262,10 +278,10 @@ get_template_part('template-parts/global/breaking-ticker');
 									<div class="gz-field gz-field--filter">
 										<label for="gz-urteile-filter-time"><?php echo esc_html($gz_i18n['urteileTimeLabel']); ?></label>
 										<select id="gz-urteile-filter-time" aria-label="<?php echo esc_attr($gz_i18n['urteileTimeLabel']); ?>">
-											<option value="30d" selected><?php echo esc_html($gz_i18n['urteileTime30Days']); ?></option>
+											<option value="30d"><?php echo esc_html($gz_i18n['urteileTime30Days']); ?></option>
 											<option value="3m"><?php echo esc_html($gz_i18n['urteileTime3Months']); ?></option>
 											<option value="1y"><?php echo esc_html($gz_i18n['urteileTime1Year']); ?></option>
-											<option value="all"><?php echo esc_html($gz_i18n['urteileTimeAll']); ?></option>
+											<option value="all" selected><?php echo esc_html($gz_i18n['urteileTimeAll']); ?></option>
 										</select>
 									</div>
 
@@ -374,9 +390,10 @@ get_template_part('template-parts/global/breaking-ticker');
 
 	var PAGE_SIZE = 20;
 	var rawData = [];
-	var sortDesc = true;
+	var sortMode = 'new';
 	var filterKey = 'all';
 	var searchQuery = '';
+	var votesOnly = false;
 	var page = 1;
 
 	var el = {
@@ -387,8 +404,10 @@ get_template_part('template-parts/global/breaking-ticker');
 		pagerMeta: document.getElementById('gz-pager-meta'),
 		filterDomain: document.getElementById('gz-filter-domain'),
 		filterSearch: document.getElementById('gz-filter-search'),
+		filterVotesOnly: document.getElementById('gz-filter-votes-only'),
 		sortNew: document.getElementById('gz-sort-new'),
 		sortOld: document.getElementById('gz-sort-old'),
+		sortVotes: document.getElementById('gz-sort-votes'),
 		btnPrev: document.getElementById('gz-btn-prev'),
 		btnNext: document.getElementById('gz-btn-next'),
 	};
@@ -414,10 +433,21 @@ get_template_part('template-parts/global/breaking-ticker');
 				return k.indexOf(q) !== -1 || n.indexOf(q) !== -1;
 			});
 		}
+		if (votesOnly) {
+			rows = rows.filter(function (r) {
+				return String(itemPollId(r) || '').trim() !== '';
+			});
+		}
 		rows.sort(function (a, b) {
 			var da = itemDatum(a) || '';
 			var db = itemDatum(b) || '';
-			var cmp = sortDesc ? db.localeCompare(da) : da.localeCompare(db);
+			if (sortMode === 'votes') {
+				var aHasVote = String(itemPollId(a) || '').trim() !== '';
+				var bHasVote = String(itemPollId(b) || '').trim() !== '';
+				if (aHasVote !== bHasVote) return bHasVote ? 1 : -1;
+			}
+			var desc = sortMode !== 'old';
+			var cmp = desc ? db.localeCompare(da) : da.localeCompare(db);
 			if (cmp !== 0) return cmp;
 			var idb = parseInt(itemGesetzId(b), 10) || 0;
 			var ida = parseInt(itemGesetzId(a), 10) || 0;
@@ -530,8 +560,16 @@ get_template_part('template-parts/global/breaking-ticker');
 		return pick(g, ['bgbl_referenz', 'bgblReferenz']);
 	}
 	function itemPollId(g) {
-		var v = pick(g, ['poll_id', 'pollId', 'abstimmung_id', 'vote_id']);
-		return v === '' ? '' : String(v);
+		if (!g || typeof g !== 'object') return '';
+		var v = pick(g, ['poll_id', 'pollId', 'pollID', 'abstimmung_id', 'abstimmungId', 'vote_id', 'voteId']);
+		if ((v == null || v === '') && g.attributes && typeof g.attributes === 'object') {
+			var a = g.attributes;
+			v = a.poll_id != null ? a.poll_id : (a.pollId != null ? a.pollId : (a.vote_id != null ? a.vote_id : a.abstimmung_id));
+		}
+		if (v == null) return '';
+		var s = String(v).trim();
+		if (!s || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return '';
+		return s;
 	}
 
 	function normalizeKuerzelCode(k) {
@@ -762,6 +800,30 @@ get_template_part('template-parts/global/breaking-ticker');
 		);
 	}
 
+	var abstimmungenCache = {};
+
+	function normalizeParteiName(name) {
+		var s = String(name || '').trim();
+		if (!s) return '—';
+		s = s.replace(/\s*\([^)]*\)\s*$/, '');
+		return s || '—';
+	}
+
+	function asNumber(v) {
+		var n = Number(v);
+		return Number.isFinite(n) && n >= 0 ? n : 0;
+	}
+
+	function renderVoteBar(value, total, cls) {
+		var pct = total > 0 ? Math.max(0, Math.min(100, (value / total) * 100)) : 0;
+		return (
+			'<div class="gz-ab-bar ' + cls + '">' +
+			'<span class="gz-ab-bar-fill" style="width:' + pct.toFixed(2) + '%"></span>' +
+			'<span class="gz-ab-bar-value">' + esc(String(value)) + '</span>' +
+			'</div>'
+		);
+	}
+
 	function formatAbstimmungen(data) {
 		if (data == null) return '<p class="gz-muted">' + esc(i18n.abstimmungenEmpty) + '</p>';
 		if (typeof data === 'string') {
@@ -771,11 +833,43 @@ get_template_part('template-parts/global/breaking-ticker');
 			if (data.length === 0) {
 				return '<p class="gz-muted">' + esc(i18n.abstimmungenEmpty) + '</p>';
 			}
-			var ul = '<ul class="gz-ab-list">';
-			for (var i = 0; i < data.length; i++) {
-				ul += '<li><pre class="gz-pre gz-pre--inline">' + esc(JSON.stringify(data[i], null, 2)) + '</pre></li>';
+			var first = data[0] || {};
+			var title = String(first.poll_titel || '').trim();
+			var date = String(first.poll_datum || '').trim();
+			var headerHtml = '';
+			if (title || date) {
+				headerHtml =
+					'<div class="gz-ab-meta">' +
+					(title ? '<div class="gz-ab-title">' + esc(title) + '</div>' : '') +
+					(date ? '<div class="gz-ab-date">' + esc(formatDatumDisplay(date)) + '</div>' : '') +
+					'</div>';
 			}
-			return ul + '</ul>';
+			var table =
+				'<div class="gz-ab-table-wrap">' +
+				'<table class="gz-ab-table">' +
+				'<thead><tr>' +
+				'<th>' + esc(i18n.abstimmungenParty || 'Partei') + '</th>' +
+				'<th>Ja</th>' +
+				'<th>Nein</th>' +
+				'<th>' + esc(i18n.abstimmungenAbstained || 'Enthalten') + '</th>' +
+				'</tr></thead><tbody>';
+			for (var i = 0; i < data.length; i++) {
+				var row = data[i] || {};
+				var ja = asNumber(row.ja);
+				var nein = asNumber(row.nein);
+				var enthalten = asNumber(row.enthalten);
+				var abwesend = asNumber(row.abwesend);
+				var total = ja + nein + enthalten + abwesend;
+				table +=
+					'<tr>' +
+					'<td class="gz-ab-party">' + esc(normalizeParteiName(row.partei)) + '</td>' +
+					'<td>' + renderVoteBar(ja, total, 'gz-ab-bar--ja') + '</td>' +
+					'<td>' + renderVoteBar(nein, total, 'gz-ab-bar--nein') + '</td>' +
+					'<td>' + renderVoteBar(enthalten, total, 'gz-ab-bar--enthalten') + '</td>' +
+					'</tr>';
+			}
+			table += '</tbody></table></div>';
+			return headerHtml + table;
 		}
 		return '<pre class="gz-pre">' + esc(JSON.stringify(data, null, 2)) + '</pre>';
 	}
@@ -795,15 +889,27 @@ get_template_part('template-parts/global/breaking-ticker');
 	function fetchAbstimmungen(detail, pollId) {
 		var panel = ensureAbstimmungenPanel(detail);
 		if (!panel) return;
+		var pollKey = String(pollId || '').trim();
+		if (!pollKey) {
+			panel.innerHTML = '<p class="gz-abstimmungen-pending">' + esc(i18n.abstimmungenPending || '') + '</p>';
+			return;
+		}
 		panel.removeAttribute('hidden');
 		panel.innerHTML = '<p class="gz-muted">' + esc(i18n.abstimmungenLoading) + '</p>';
-		var url = base + '/api/abstimmungen/' + encodeURIComponent(pollId);
+		if (Object.prototype.hasOwnProperty.call(abstimmungenCache, pollKey)) {
+			panel.innerHTML =
+				'<div class="gz-abstimmungen-head">' + esc(i18n.abstimmungenTitle) + '</div>' +
+				'<div class="gz-abstimmungen-body">' + formatAbstimmungen(abstimmungenCache[pollKey]) + '</div>';
+			return;
+		}
+		var url = base + '/api/abstimmungen/' + encodeURIComponent(pollKey);
 		fetch(url)
 			.then(function (r) {
 				if (!r.ok) throw new Error('HTTP ' + r.status);
 				return r.json();
 			})
 			.then(function (data) {
+				abstimmungenCache[pollKey] = data;
 				panel.innerHTML =
 					'<div class="gz-abstimmungen-head">' + esc(i18n.abstimmungenTitle) + '</div>' +
 					'<div class="gz-abstimmungen-body">' + formatAbstimmungen(data) + '</div>';
@@ -1048,27 +1154,41 @@ get_template_part('template-parts/global/breaking-ticker');
 	function onFilterChange() {
 		filterKey = el.filterDomain ? el.filterDomain.value : 'all';
 		searchQuery = el.filterSearch ? el.filterSearch.value : '';
+		votesOnly = !!(el.filterVotesOnly && el.filterVotesOnly.checked);
 		page = 1;
 		renderPage();
 	}
 
 	if (el.filterDomain) el.filterDomain.addEventListener('change', onFilterChange);
 	if (el.filterSearch) el.filterSearch.addEventListener('input', onFilterChange);
+	if (el.filterVotesOnly) el.filterVotesOnly.addEventListener('change', onFilterChange);
 
 	if (el.sortNew) {
 		el.sortNew.addEventListener('click', function () {
-			sortDesc = true;
+			sortMode = 'new';
 			if (el.sortNew) el.sortNew.classList.add('gz-btn-sort-active');
 			if (el.sortOld) el.sortOld.classList.remove('gz-btn-sort-active');
+			if (el.sortVotes) el.sortVotes.classList.remove('gz-btn-sort-active');
 			page = 1;
 			renderPage();
 		});
 	}
 	if (el.sortOld) {
 		el.sortOld.addEventListener('click', function () {
-			sortDesc = false;
+			sortMode = 'old';
 			if (el.sortOld) el.sortOld.classList.add('gz-btn-sort-active');
 			if (el.sortNew) el.sortNew.classList.remove('gz-btn-sort-active');
+			if (el.sortVotes) el.sortVotes.classList.remove('gz-btn-sort-active');
+			page = 1;
+			renderPage();
+		});
+	}
+	if (el.sortVotes) {
+		el.sortVotes.addEventListener('click', function () {
+			sortMode = 'votes';
+			if (el.sortVotes) el.sortVotes.classList.add('gz-btn-sort-active');
+			if (el.sortNew) el.sortNew.classList.remove('gz-btn-sort-active');
+			if (el.sortOld) el.sortOld.classList.remove('gz-btn-sort-active');
 			page = 1;
 			renderPage();
 		});
@@ -1187,7 +1307,7 @@ get_template_part('template-parts/global/breaking-ticker');
 	var filterSearch = '';
 	var filterCourt = 'all';
 	var filterArea = 'all';
-	var filterTime = '30d';
+	var filterTime = 'all';
 
 	var el = {
 		filterToggle: document.getElementById('gz-urteile-filter-toggle'),
@@ -1331,14 +1451,18 @@ get_template_part('template-parts/global/breaking-ticker');
 
 		if (filterTime !== 'all') {
 			var now = new Date();
-			var threshold = null;
-			if (filterTime === '30d') threshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-			if (filterTime === '3m') threshold = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-			if (filterTime === '1y') threshold = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-			if (threshold) {
+			var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			var days = null;
+			if (filterTime === '30d') days = 30;
+			if (filterTime === '3m') days = 90;
+			if (filterTime === '1y') days = 365;
+			if (days != null) {
+				var threshold = new Date(todayStart.getTime() - days * 24 * 60 * 60 * 1000);
 				rows = rows.filter(function (r) {
 					var dt = parseIsoDate(r.datum);
-					return dt && dt.getTime() >= threshold.getTime();
+					if (!dt) return false;
+					var dtStart = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+					return dtStart.getTime() >= threshold.getTime();
 				});
 			}
 		}
