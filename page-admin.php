@@ -650,34 +650,37 @@ $statusMeta = [
         }
         .card-pm2 {
             min-width: 280px;
+            overflow: hidden;
         }
         .pm2-proc-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin-top: 4px;
+            min-width: 0;
         }
         .pm2-proc {
             background: #141820;
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 14px 18px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
+            min-width: 0;
         }
         .pm2-proc-row {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 10px;
-            white-space: nowrap;
-            min-width: min-content;
-            font-size: 13px;
+            gap: 6px 8px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            min-width: 0;
         }
         .pm2-proc-name {
             font-weight: 700;
             color: #fff;
-            flex-shrink: 0;
+            max-width: 100%;
+            word-break: break-word;
         }
         .pm2-sep {
             color: var(--muted);
@@ -685,13 +688,20 @@ $statusMeta = [
             user-select: none;
         }
         .pm2-pid {
-            font-size: 11px;
+            font-size: 0.85em;
             color: var(--muted);
             flex-shrink: 0;
+            white-space: nowrap;
         }
         .pm2-metric {
             flex-shrink: 0;
             color: var(--text);
+            white-space: nowrap;
+        }
+        .pm2-proc-row .badge {
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
     </style>
 </head>
