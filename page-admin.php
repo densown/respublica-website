@@ -27,6 +27,38 @@ function rp_admin_badge_class($ok)
     return $ok ? 'badge-ok' : 'badge-fail';
 }
 
+function rp_admin_shell_output_last_lines($text, $lines = 5)
+{
+    $text = str_replace(["\r\n", "\r"], "\n", (string) $text);
+    if ($text === '') {
+        return '(keine Ausgabe)';
+    }
+    $parts = explode("\n", $text);
+    $parts = array_slice($parts, -$lines);
+
+    return implode("\n", $parts);
+}
+
+function rp_admin_cron_shell_ok($output)
+{
+    $o = (string) $output;
+    $l = strtolower($o);
+    if ($o === '') {
+        return true;
+    }
+    if (strpos($o, 'Traceback') !== false) {
+        return false;
+    }
+    if (strpos($l, 'command not found') !== false) {
+        return false;
+    }
+    if (strpos($l, 'no such file or directory') !== false) {
+        return false;
+    }
+
+    return true;
+}
+
 function rp_admin_format_uptime_pm2($seconds)
 {
     $sec = max(0, (int) $seconds);
@@ -409,12 +441,127 @@ if (is_readable($koalitionPath)) {
 }
 
 $emailResult = null;
+$shellActionResult = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    check_admin_referer('rp_admin_dashboard_action', 'rp_admin_nonce');
+    $postedShellAction = isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '';
+    if ($postedShellAction !== '') {
+        check_admin_referer('rp_admin_shell_actions', 'rp_shell_nonce');
+        $key = $postedShellAction;
+        switch ($postedShellAction) {
+            case 'pm2_restart_api':
+                $out = (string) (shell_exec('/usr/local/bin/pm2 restart api 2>&1') ?? '');
+                $outLower = strtolower($out);
+                $okPm2 = (strpos($out, '✓') !== false)
+                    || (stripos($outLower, 'restart') !== false)
+                    || (stripos($outLower, 'online') !== false);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $okPm2,
+                    'message' => $okPm2
+                        ? 'API neu gestartet (PM2-Ausgabe ok).'
+                        : 'PM2-Ausgabe: kein restart/online und kein Haekchen erkannt.',
+                    'output' => $out,
+                    'cron' => false,
+                ];
+                break;
+            case 'nginx_reload':
+                /*
+                 * Nginx reload von www-data: auf dem Server manuell per visudo einrichten, z. B.:
+                 *   www-data ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s reload
+                 */
+                $out = (string) (shell_exec('sudo /usr/sbin/nginx -s reload 2>&1') ?? '');
+                $ok = stripos(strtolower($out), 'error') === false;
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Nginx neu geladen.' : 'Nginx-Ausgabe enthaelt error.',
+                    'output' => $out,
+                    'cron' => false,
+                ];
+                break;
+            case 'cron_bundestag_diffs':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/bundestag_gesetze_diffs.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            case 'cron_import_diffs':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/import_diffs_to_db.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            case 'cron_fetch_abstimmungen':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/fetch_abstimmungen.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            case 'cron_fetch_bgbl':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/fetch_bgbl.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            case 'cron_fetch_urteile':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/fetch_urteile.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            case 'cron_summarize':
+                $out = (string) (shell_exec('python3 /root/apps/gesetze/scripts/summarize_gesetze.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'Skript beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
+            default:
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => false,
+                    'message' => 'Unbekannte Aktion.',
+                    'output' => '',
+                    'cron' => false,
+                ];
+        }
+    } else {
+        check_admin_referer('rp_admin_dashboard_action', 'rp_admin_nonce');
+    }
+
     $action = isset($_POST['rp_action']) ? sanitize_text_field(wp_unslash($_POST['rp_action'])) : '';
 
-    if ($action === 'update_koalition') {
+    if ($postedShellAction === '' && $action === 'update_koalition') {
         $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
         $newStatus = isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : '';
         $allowed = ['ausstehend', 'in_arbeit', 'umgesetzt', 'gescheitert'];
@@ -439,7 +586,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if ($action === 'test_alert') {
+    if ($postedShellAction === '' && $action === 'test_alert') {
         $env = rp_admin_read_env('/root/apps/gesetze/.env');
         $smtpUser = $env['SMTP_USER'] ?? '';
         $smtpPass = $env['SMTP_PASS'] ?? '';
@@ -476,6 +623,15 @@ $statusMeta = [
     'in_arbeit' => ['label' => 'In Arbeit', 'class' => 'status-in-arbeit'],
     'umgesetzt' => ['label' => 'Umgesetzt', 'class' => 'status-umgesetzt'],
     'gescheitert' => ['label' => 'Gescheitert', 'class' => 'status-gescheitert'],
+];
+
+$cronManualButtons = [
+    ['key' => 'cron_bundestag_diffs', 'label' => 'Gesetze: Diffs holen'],
+    ['key' => 'cron_import_diffs', 'label' => 'Gesetze: Importieren'],
+    ['key' => 'cron_fetch_abstimmungen', 'label' => 'Abstimmungen holen'],
+    ['key' => 'cron_fetch_bgbl', 'label' => 'BGBl zuordnen'],
+    ['key' => 'cron_fetch_urteile', 'label' => 'Urteile holen'],
+    ['key' => 'cron_summarize', 'label' => 'KI Zusammenfassungen'],
 ];
 ?>
 <!doctype html>
@@ -703,6 +859,77 @@ $statusMeta = [
             flex-shrink: 0;
             white-space: nowrap;
         }
+        .actions-section .actions-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-start;
+            margin-top: 8px;
+        }
+        .action-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+            max-width: 100%;
+        }
+        .actions-section h3 {
+            font-size: 14px;
+            margin: 18px 0 0;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .actions-section h3:first-of-type {
+            margin-top: 4px;
+        }
+        button.btn-action-shell {
+            background: #c0392b;
+            color: #fff;
+            border: 1px solid #a33228;
+            border-radius: 6px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        button.btn-action-shell:hover {
+            filter: brightness(1.08);
+        }
+        button.btn-action-shell:active {
+            filter: brightness(0.95);
+        }
+        .action-result {
+            margin: 0;
+            line-height: 1.35;
+        }
+        details.action-output-details {
+            margin-top: 2px;
+            max-width: min(100%, 720px);
+        }
+        details.action-output-details summary {
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 11px;
+            user-select: none;
+            list-style: none;
+        }
+        details.action-output-details summary::-webkit-details-marker {
+            display: none;
+        }
+        details.action-output-details pre.action-output-pre {
+            margin: 8px 0 0;
+            max-height: 14rem;
+            overflow: auto;
+            background: #050608;
+            border: 1px solid #1f2430;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 11px;
+            color: #d5d8dd;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -771,6 +998,72 @@ $statusMeta = [
                     <span class="muted">Keine Eintraege in pm2-status.json.</span>
                 <?php endif; ?>
             </div>
+        </div>
+    </section>
+
+    <section class="actions-section">
+        <h2>Aktionen</h2>
+
+        <h3>API und Webserver</h3>
+        <div class="actions-toolbar">
+            <form method="post" class="action-form" action="">
+                <input type="hidden" name="rp_shell_nonce" value="<?php echo esc_attr(wp_create_nonce('rp_admin_shell_actions')); ?>">
+                <input type="hidden" name="action" value="pm2_restart_api">
+                <button type="submit" class="btn-action-shell">API neu starten</button>
+                <?php if ($shellActionResult && ($shellActionResult['key'] ?? '') === 'pm2_restart_api'): ?>
+                    <p class="action-result">
+                        <span class="badge <?php echo esc_attr(rp_admin_badge_class(!empty($shellActionResult['ok']))); ?>">
+                            <?php echo !empty($shellActionResult['ok']) ? 'Erfolg' : 'Fehler'; ?>
+                        </span>
+                        <?php echo esc_html((string) ($shellActionResult['message'] ?? '')); ?>
+                    </p>
+                    <details class="action-output-details">
+                        <summary>Letzte 3 Zeilen</summary>
+                        <pre class="action-output-pre"><?php echo esc_html(rp_admin_shell_output_last_lines($shellActionResult['output'] ?? '', 3)); ?></pre>
+                    </details>
+                <?php endif; ?>
+            </form>
+            <form method="post" class="action-form" action="">
+                <input type="hidden" name="rp_shell_nonce" value="<?php echo esc_attr(wp_create_nonce('rp_admin_shell_actions')); ?>">
+                <input type="hidden" name="action" value="nginx_reload">
+                <button type="submit" class="btn-action-shell">Nginx neu laden</button>
+                <?php if ($shellActionResult && ($shellActionResult['key'] ?? '') === 'nginx_reload'): ?>
+                    <p class="action-result">
+                        <span class="badge <?php echo esc_attr(rp_admin_badge_class(!empty($shellActionResult['ok']))); ?>">
+                            <?php echo !empty($shellActionResult['ok']) ? 'Erfolg' : 'Fehler'; ?>
+                        </span>
+                        <?php echo esc_html((string) ($shellActionResult['message'] ?? '')); ?>
+                    </p>
+                <?php endif; ?>
+            </form>
+        </div>
+
+        <h3>Cronjobs manuell</h3>
+        <p class="muted" style="margin:6px 0 0;">Kann 1&ndash;5 Minuten dauern.</p>
+        <div class="actions-toolbar" style="margin-top:12px;">
+            <?php foreach ($cronManualButtons as $cronBtn): ?>
+                <?php
+                $ckey = $cronBtn['key'];
+                $showCronResult = $shellActionResult && ($shellActionResult['key'] ?? '') === $ckey;
+                ?>
+                <form method="post" class="action-form" action="">
+                    <input type="hidden" name="rp_shell_nonce" value="<?php echo esc_attr(wp_create_nonce('rp_admin_shell_actions')); ?>">
+                    <input type="hidden" name="action" value="<?php echo esc_attr($ckey); ?>">
+                    <button type="submit" class="btn-action-shell"><?php echo esc_html($cronBtn['label']); ?></button>
+                    <?php if ($showCronResult): ?>
+                        <p class="action-result">
+                            <span class="badge <?php echo esc_attr(rp_admin_badge_class(!empty($shellActionResult['ok']))); ?>">
+                                <?php echo !empty($shellActionResult['ok']) ? 'Erfolg' : 'Fehler'; ?>
+                            </span>
+                            <?php echo esc_html((string) ($shellActionResult['message'] ?? '')); ?>
+                        </p>
+                        <details class="action-output-details">
+                            <summary>Letzte 5 Zeilen</summary>
+                            <pre class="action-output-pre"><?php echo esc_html(rp_admin_shell_output_last_lines($shellActionResult['output'] ?? '', 5)); ?></pre>
+                        </details>
+                    <?php endif; ?>
+                </form>
+            <?php endforeach; ?>
         </div>
     </section>
 
