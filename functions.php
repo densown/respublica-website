@@ -367,4 +367,25 @@ function rp_t($de, $en) {
   }
   return $lang === 'en' ? $en : $de;
 }
+
+// Site Kit Consent Mode komplett deaktivieren
+add_filter('googlesitekit_consent_mode_status', '__return_false');
+add_action('wp_enqueue_scripts', function() {
+    wp_dequeue_script('google_gtagjs-js-consent-mode-data-layer');
+    wp_deregister_script('google_gtagjs-js-consent-mode-data-layer');
+    wp_dequeue_script('googlesitekit-consent-mode');
+    wp_deregister_script('googlesitekit-consent-mode');
+}, 999);
+// Inline Consent-Mode Snippet per Output Buffer entfernen
+add_action('template_redirect', function() {
+    ob_start(function($html) {
+        $html = preg_replace(
+            '/<script[^>]*id=["\']google_gtagjs-js-consent-mode-data-layer["\'][^>]*>.*?<\/script>/s',
+            '',
+            $html
+        );
+        return $html;
+    });
+});
+
 ?>
