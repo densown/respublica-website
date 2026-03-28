@@ -350,6 +350,10 @@ $dbStats = [
     'letzte_urteile' => [],
     'letzte_aenderungen_error' => null,
     'letzte_urteile_error' => null,
+    'eu_table_missing' => false,
+    'eu_rechtsakte_total' => null,
+    'eu_by_typ' => [],
+    'eu_latest_datum' => null,
     'db_error' => null,
 ];
 
@@ -414,6 +418,36 @@ if ($mysqli->connect_errno) {
     } else {
         $dbStats['letzte_urteile'] = $recentUrteile->fetch_all(MYSQLI_ASSOC);
         $recentUrteile->free();
+    }
+
+    $euTab = @$mysqli->query("SHOW TABLES LIKE 'eu_rechtsakte'");
+    if ($euTab instanceof mysqli_result && $euTab->num_rows > 0) {
+        $euTab->free();
+        $dbStats['eu_table_missing'] = false;
+        $euCnt = $mysqli->query('SELECT COUNT(*) AS c FROM eu_rechtsakte');
+        if ($euCnt instanceof mysqli_result) {
+            $rw = $euCnt->fetch_assoc();
+            $dbStats['eu_rechtsakte_total'] = isset($rw['c']) ? (int) $rw['c'] : 0;
+            $euCnt->free();
+        }
+        $euTyp = $mysqli->query('SELECT typ, COUNT(*) AS c FROM eu_rechtsakte GROUP BY typ');
+        if ($euTyp instanceof mysqli_result) {
+            while ($tr = $euTyp->fetch_assoc()) {
+                $dbStats['eu_by_typ'][$tr['typ']] = (int) $tr['c'];
+            }
+            $euTyp->free();
+        }
+        $euMax = $mysqli->query('SELECT MAX(datum) AS d FROM eu_rechtsakte');
+        if ($euMax instanceof mysqli_result) {
+            $mr = $euMax->fetch_assoc();
+            $dbStats['eu_latest_datum'] = $mr['d'] ?? null;
+            $euMax->free();
+        }
+    } else {
+        $dbStats['eu_table_missing'] = true;
+        if ($euTab instanceof mysqli_result) {
+            $euTab->free();
+        }
     }
 
     $mysqli->close();
@@ -546,6 +580,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'cron' => true,
                 ];
                 break;
+            case 'cron_fetch_eu_recht':
+                $out = (string) (shell_exec('/usr/bin/python3 /root/apps/gesetze/scripts/fetch_eu_recht.py 2>&1') ?? '');
+                $ok = rp_admin_cron_shell_ok($out);
+                $shellActionResult = [
+                    'key' => $key,
+                    'ok' => $ok,
+                    'message' => $ok ? 'EU-Fetch beendet (siehe Ausgabe).' : 'Moeglicher Fehler (Traceback o. a.).',
+                    'output' => $out,
+                    'cron' => true,
+                ];
+                break;
             default:
                 $shellActionResult = [
                     'key' => $key,
@@ -632,6 +677,7 @@ $cronManualButtons = [
     ['key' => 'cron_fetch_bgbl', 'label' => 'BGBl zuordnen'],
     ['key' => 'cron_fetch_urteile', 'label' => 'Urteile holen'],
     ['key' => 'cron_summarize', 'label' => 'KI Zusammenfassungen'],
+    ['key' => 'cron_fetch_eu_recht', 'label' => 'EU-Recht holen (SPARQL)'],
 ];
 ?>
 <!doctype html>
@@ -1082,6 +1128,19 @@ $cronManualButtons = [
             <div class="card"><div class="label">Ohne Abstimmungsverknüpfung</div><div class="value"><?php echo (int) $dbStats['ohne_poll']; ?></div></div>
             <div class="card"><div class="label">Gesetz-Urteil-Verknüpfungen</div><div class="value"><?php echo (int) $dbStats['urteil_gesetze_links']; ?></div></div>
         </div>
+
+        <h3 style="margin-top:22px;">EU-Rechtsakte</h3>
+        <?php if ($dbStats['eu_table_missing']): ?>
+            <p class="muted">Tabelle <code>eu_rechtsakte</code> fehlt. Migration ausführen: <code>/root/apps/gesetze/migrations/001_eu_rechtsakte.sql</code></p>
+        <?php else: ?>
+            <div class="grid grid-4" style="margin-top:10px;">
+                <div class="card"><div class="label">EU gesamt</div><div class="value"><?php echo (int) $dbStats['eu_rechtsakte_total']; ?></div></div>
+                <div class="card"><div class="label">Verordnungen (REG)</div><div class="value"><?php echo (int) ($dbStats['eu_by_typ']['REG'] ?? 0); ?></div></div>
+                <div class="card"><div class="label">Richtlinien (DIR)</div><div class="value"><?php echo (int) ($dbStats['eu_by_typ']['DIR'] ?? 0); ?></div></div>
+                <div class="card"><div class="label">Beschlüsse (DEC)</div><div class="value"><?php echo (int) ($dbStats['eu_by_typ']['DEC'] ?? 0); ?></div></div>
+                <div class="card"><div class="label">Letztes Dokumentdatum</div><div class="value" style="font-size:18px;"><?php echo $dbStats['eu_latest_datum'] ? esc_html((string) $dbStats['eu_latest_datum']) : '–'; ?></div></div>
+            </div>
+        <?php endif; ?>
 
         <h3 style="margin-top:18px;">Letzte 5 Gesetzesänderungen</h3>
         <?php if ($dbStats['letzte_aenderungen_error']): ?>
