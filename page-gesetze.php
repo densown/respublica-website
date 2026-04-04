@@ -101,6 +101,15 @@ $gz_i18n = array(
 	'euEurlexLink'       => rp_t('Auf EUR-Lex ansehen →', 'View on EUR-Lex →'),
 	'euCelex'            => rp_t('CELEX', 'CELEX'),
 	'euBadgeRegion'      => rp_t('EU', 'EU'),
+	'euSubTabLegislation' => rp_t('EU-Gesetzgebung', 'EU Legislation'),
+	'euSubTabCaseLaw'    => rp_t('EuGH-Rechtsprechung', 'ECJ Case Law'),
+	'euCourtAll'         => rp_t('Alle Gerichte', 'All Courts'),
+	'euBadgeRegionEu'    => rp_t('EU', 'EU'),
+	'euAiDisclaimer'     => rp_t('KI-generierte Zusammenfassung', 'AI-generated summary'),
+	'euViewOnEurlex'     => rp_t('Auf EUR-Lex ansehen →', 'View on EUR-Lex →'),
+	'euCaseLawSubject'   => rp_t('Betreff', 'Subject'),
+	'euUrteileLoading'   => rp_t('Lade EuGH-Rechtsprechung…', 'Loading ECJ case law…'),
+	'euUrteileEmpty'     => rp_t('Keine EuGH-Urteile für die aktuelle Auswahl.', 'No ECJ judgments for this selection.'),
 );
 
 get_header();
@@ -348,6 +357,16 @@ get_template_part('template-parts/global/breaking-ticker');
 							<?php echo esc_html($gz_i18n['euSectionLabel']); ?>
 						</div>
 
+						<div class="gz-eu-subtabs" role="tablist" aria-label="<?php echo esc_attr(rp_t('EU-Recht Unterbereiche', 'EU law sections')); ?>">
+							<button type="button" class="gz-eu-subtab-btn gz-eu-subtab-btn--active" id="gz-eu-subtab-legislation" role="tab" aria-selected="true" aria-controls="gz-eu-panel-legislation" data-eu-subtab="legislation">
+								<?php echo esc_html($gz_i18n['euSubTabLegislation']); ?>
+							</button>
+							<button type="button" class="gz-eu-subtab-btn" id="gz-eu-subtab-caselaw" role="tab" aria-selected="false" aria-controls="gz-eu-panel-caselaw" data-eu-subtab="caselaw">
+								<?php echo esc_html($gz_i18n['euSubTabCaseLaw']); ?>
+							</button>
+						</div>
+
+						<div id="gz-eu-panel-legislation" class="gz-eu-subpanel" role="tabpanel" aria-labelledby="gz-eu-subtab-legislation" data-eu-subpanel="legislation">
 						<div
 							id="gz-eu-app"
 							class="gz-eu-app gz-urteile-app"
@@ -412,6 +431,65 @@ get_template_part('template-parts/global/breaking-ticker');
 								<div class="gz-pager-nav">
 									<button type="button" class="gz-btn-page" id="gz-eu-btn-prev"><?php echo esc_html($gz_i18n['pagerPrev']); ?></button>
 									<button type="button" class="gz-btn-page" id="gz-eu-btn-next"><?php echo esc_html($gz_i18n['pagerNext']); ?></button>
+								</div>
+							</div>
+						</div>
+						</div>
+
+						<div id="gz-eu-panel-caselaw" class="gz-eu-subpanel" role="tabpanel" aria-labelledby="gz-eu-subtab-caselaw" data-eu-subpanel="caselaw" hidden>
+							<div
+								id="gz-eu-urteile-app"
+								class="gz-urteile-app"
+								data-api-base="<?php echo esc_attr($gz_api_base); ?>"
+								data-i18n="<?php echo esc_attr(wp_json_encode($gz_i18n)); ?>"
+							>
+								<div id="gz-eu-urteile-error" class="gz-app-error" hidden role="alert"></div>
+
+								<button type="button" id="gz-eu-urteile-filter-toggle" class="gz-urteile-filter-toggle" aria-expanded="false">
+									<?php echo esc_html($gz_i18n['euFilterExpand']); ?>
+								</button>
+
+								<div id="gz-eu-urteile-filter-panel" class="gz-urteile-filter-panel" aria-hidden="true">
+									<div class="gz-toolbar gz-urteile-toolbar">
+										<div class="gz-field gz-field--search">
+											<label for="gz-eu-urteile-filter-search"><?php echo esc_html($gz_i18n['urteileSearchLabel']); ?></label>
+											<div class="gz-search-wrap">
+												<svg class="gz-search-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+													<circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+													<path d="m14 14 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+												</svg>
+												<input type="search" id="gz-eu-urteile-filter-search" placeholder="<?php echo esc_attr($gz_i18n['urteileSearchPh']); ?>" autocomplete="off" />
+											</div>
+										</div>
+
+										<div class="gz-field gz-field--filter">
+											<label for="gz-eu-urteile-filter-court"><?php echo esc_html($gz_i18n['urteileCourtLabel']); ?></label>
+											<select id="gz-eu-urteile-filter-court" aria-label="<?php echo esc_attr($gz_i18n['urteileCourtLabel']); ?>">
+												<option value="all"><?php echo esc_html($gz_i18n['euCourtAll']); ?></option>
+												<option value="EuGH"><?php echo esc_html('EuGH'); ?></option>
+												<option value="EuG"><?php echo esc_html('EuG'); ?></option>
+											</select>
+										</div>
+
+										<div class="gz-field gz-field--filter">
+											<label for="gz-eu-urteile-filter-area"><?php echo esc_html($gz_i18n['euAreaLabel']); ?></label>
+											<select id="gz-eu-urteile-filter-area" aria-label="<?php echo esc_attr($gz_i18n['euAreaLabel']); ?>">
+												<option value="all"><?php echo esc_html(rp_t('Alle', 'All')); ?></option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+								<p id="gz-eu-urteile-loading" class="gz-status gz-loading" hidden><?php echo esc_html($gz_i18n['euUrteileLoading']); ?></p>
+
+								<div id="gz-eu-urteile-cards" class="gz-urteile-cards gz-cards"></div>
+
+								<div id="gz-eu-urteile-pager" class="gz-pager" hidden>
+									<span class="gz-pager-meta" id="gz-eu-urteile-pager-meta"></span>
+									<div class="gz-pager-nav">
+										<button type="button" class="gz-btn-page" id="gz-eu-urteile-btn-prev"><?php echo esc_html($gz_i18n['pagerPrev']); ?></button>
+										<button type="button" class="gz-btn-page" id="gz-eu-urteile-btn-next"><?php echo esc_html($gz_i18n['pagerNext']); ?></button>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -1355,8 +1433,13 @@ get_template_part('template-parts/global/breaking-ticker');
 		if (tabKey === 'urteile' && typeof window.gzEnsureUrteileLoaded === 'function') {
 			window.gzEnsureUrteileLoaded();
 		}
-		if (tabKey === 'eu' && typeof window.gzEnsureEuLoaded === 'function') {
-			window.gzEnsureEuLoaded();
+		if (tabKey === 'eu') {
+			var euSub = window.gzEuActiveSubTab || 'legislation';
+			if (euSub === 'legislation' && typeof window.gzEnsureEuLoaded === 'function') {
+				window.gzEnsureEuLoaded();
+			} else if (euSub === 'caselaw' && typeof window.gzEnsureEuUrteileLoaded === 'function') {
+				window.gzEnsureEuUrteileLoaded();
+			}
 		}
 	}
 
@@ -1383,6 +1466,44 @@ get_template_part('template-parts/global/breaking-ticker');
 			switchGzTab('eu');
 		});
 	}
+})();
+</script>
+
+<script>
+(function () {
+	window.gzEuActiveSubTab = window.gzEuActiveSubTab || 'legislation';
+	var btnLeg = document.getElementById('gz-eu-subtab-legislation');
+	var btnCase = document.getElementById('gz-eu-subtab-caselaw');
+	var panLeg = document.getElementById('gz-eu-panel-legislation');
+	var panCase = document.getElementById('gz-eu-panel-caselaw');
+	if (!btnLeg || !btnCase || !panLeg || !panCase) return;
+
+	function applyEuSubTab(key) {
+		window.gzEuActiveSubTab = key;
+		var isLeg = key === 'legislation';
+		btnLeg.classList.toggle('gz-eu-subtab-btn--active', isLeg);
+		btnCase.classList.toggle('gz-eu-subtab-btn--active', !isLeg);
+		btnLeg.setAttribute('aria-selected', String(isLeg));
+		btnCase.setAttribute('aria-selected', String(!isLeg));
+		panLeg.hidden = !isLeg;
+		panCase.hidden = isLeg;
+		if (isLeg && typeof window.gzEnsureEuLoaded === 'function') {
+			window.gzEnsureEuLoaded();
+		}
+		if (!isLeg && typeof window.gzEnsureEuUrteileLoaded === 'function') {
+			window.gzEnsureEuUrteileLoaded();
+		}
+	}
+	window.gzSwitchEuSubTab = applyEuSubTab;
+
+	btnLeg.addEventListener('click', function (e) {
+		e.preventDefault();
+		applyEuSubTab('legislation');
+	});
+	btnCase.addEventListener('click', function (e) {
+		e.preventDefault();
+		applyEuSubTab('caselaw');
+	});
 })();
 </script>
 
@@ -2300,6 +2421,425 @@ get_template_part('template-parts/global/breaking-ticker');
 	var euTab = document.getElementById('gz-tab-eu');
 	if (euTab && euTab.getAttribute('aria-selected') === 'true') {
 		ensureEuLoaded();
+	}
+})();
+</script>
+
+<script>
+(function () {
+	var euUrApp = document.getElementById('gz-eu-urteile-app');
+	if (!euUrApp) return;
+
+	var panCase = document.getElementById('gz-eu-panel-caselaw');
+
+	var cards = document.getElementById('gz-eu-urteile-cards');
+	var pager = document.getElementById('gz-eu-urteile-pager');
+	var pagerMeta = document.getElementById('gz-eu-urteile-pager-meta');
+	var btnPrev = document.getElementById('gz-eu-urteile-btn-prev');
+	var btnNext = document.getElementById('gz-eu-urteile-btn-next');
+	var errorEl = document.getElementById('gz-eu-urteile-error');
+	var loadingEl = document.getElementById('gz-eu-urteile-loading');
+
+	var base = (euUrApp.getAttribute('data-api-base') || '').replace(/\/$/, '');
+	var i18n = {};
+	try {
+		i18n = JSON.parse(euUrApp.getAttribute('data-i18n') || '{}');
+	} catch (e0) {}
+
+	var PAGE_SIZE = 20;
+	var page = 1;
+	var totalCount = 0;
+	var items = [];
+	var filterCourt = 'all';
+	var filterArea = 'all';
+	var filterSearch = '';
+	var loading = false;
+	var everLoaded = false;
+	var statsLoaded = false;
+	var statsInflight = null;
+	var fetchSeq = 0;
+
+	var el = {
+		filterToggle: document.getElementById('gz-eu-urteile-filter-toggle'),
+		filterPanel: document.getElementById('gz-eu-urteile-filter-panel'),
+		filterSearch: document.getElementById('gz-eu-urteile-filter-search'),
+		filterCourt: document.getElementById('gz-eu-urteile-filter-court'),
+		filterArea: document.getElementById('gz-eu-urteile-filter-area'),
+	};
+
+	function showError(msg) {
+		if (!errorEl) return;
+		if (msg) {
+			errorEl.textContent = msg;
+			errorEl.hidden = false;
+		} else {
+			errorEl.textContent = '';
+			errorEl.hidden = true;
+		}
+	}
+
+	function esc(s) {
+		if (s == null) return '';
+		var d = document.createElement('div');
+		d.textContent = String(s);
+		return d.innerHTML;
+	}
+
+	function escAttr(s) {
+		return esc(s);
+	}
+
+	function nl2br(s) {
+		return esc(s).replace(/\n/g, '<br/>');
+	}
+
+	function getLang() {
+		return document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'de';
+	}
+
+	function parseIsoDate(raw) {
+		var s = String(raw || '').trim();
+		var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+		if (!m) return null;
+		var y = parseInt(m[1], 10);
+		var mo = parseInt(m[2], 10) - 1;
+		var d = parseInt(m[3], 10);
+		var dt = new Date(y, mo, d);
+		return isNaN(dt.getTime()) ? null : dt;
+	}
+
+	function formatDatumDisplay(raw) {
+		var dt = parseIsoDate(raw);
+		if (!dt) return String(raw || '').trim() || '-';
+		if (getLang() === 'en') {
+			return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+		}
+		var months = [
+			'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+			'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+		];
+		var d = dt.getDate();
+		var mo = dt.getMonth();
+		var y = dt.getFullYear();
+		var dayStr = d < 10 ? '0' + d : String(d);
+		return dayStr + '. ' + months[mo] + ' ' + y;
+	}
+
+	function pagerMetaHtml(p, tp, n) {
+		if (i18n.pagerSeite && i18n.pagerVon && i18n.pagerEntriesTotal) {
+			return (
+				'<span class="gz-pager-primary">' +
+				'<span class="gz-pager-w">' + esc(i18n.pagerSeite) + '</span> ' +
+				'<strong class="gz-pager-cur">' + esc(String(p)) + '</strong> ' +
+				'<span class="gz-pager-w">' + esc(i18n.pagerVon) + '</span> ' +
+				'<span class="gz-pager-tmax">' + esc(String(tp)) + '</span>' +
+				'</span>' +
+				'<span class="gz-pager-sep" aria-hidden="true">·</span>' +
+				'<span class="gz-pager-n">' + esc(String(n)) + ' <span class="gz-pager-w">' +
+				esc(i18n.pagerEntriesTotal) + '</span></span>'
+			);
+		}
+		var tpl = i18n.pagerMetaTpl || '';
+		return esc(tpl.replace(/\{p\}/g, String(p)).replace(/\{tp\}/g, String(tp)).replace(/\{n\}/g, String(n)));
+	}
+
+	function normalizeListPayload(d) {
+		var list = [];
+		if (d && Array.isArray(d.data)) list = d.data;
+		else if (d && Array.isArray(d.items)) list = d.items;
+		var total = 0;
+		if (d && d.pagination && typeof d.pagination.total === 'number') total = d.pagination.total;
+		else if (d && typeof d.total === 'number') total = d.total;
+		else total = list.length;
+		return { items: list, total: total };
+	}
+
+	function truncateSubject(raw, maxLen) {
+		var t = String(raw || '').trim();
+		if (!t) return { display: '', full: '' };
+		var n = typeof maxLen === 'number' ? maxLen : 150;
+		if (t.length <= n) return { display: t, full: t };
+		return { display: t.slice(0, n) + '...', full: t };
+	}
+
+	function pickSummary(row) {
+		if (getLang() === 'en') {
+			return String(row.zusammenfassung_en || row.zusammenfassung_de || '').trim();
+		}
+		return String(row.zusammenfassung_de || row.zusammenfassung_en || '').trim();
+	}
+
+	function buildQuery() {
+		var params = [
+			'limit=' + PAGE_SIZE,
+			'offset=' + ((page - 1) * PAGE_SIZE)
+		];
+		if (filterCourt !== 'all') {
+			params.push('gericht=' + encodeURIComponent(filterCourt));
+		}
+		if (filterArea !== 'all') {
+			params.push('rechtsgebiet=' + encodeURIComponent(filterArea));
+		}
+		var sq = String(filterSearch || '').trim();
+		if (sq) {
+			params.push('search=' + encodeURIComponent(sq));
+		}
+		return params.join('&');
+	}
+
+	function populateAreaOptions(stats) {
+		var sel = el.filterArea;
+		if (!sel) return;
+		var prev = sel.value;
+		var allText = 'Alle';
+		if (sel.options[0] && sel.options[0].value === 'all') {
+			allText = sel.options[0].textContent || allText;
+		}
+		var rows = stats && Array.isArray(stats.by_rechtsgebiet) ? stats.by_rechtsgebiet : [];
+		var names = [];
+		for (var i = 0; i < rows.length; i++) {
+			var nm = String(rows[i].rechtsgebiet || '').trim();
+			if (nm && names.indexOf(nm) === -1) names.push(nm);
+		}
+		names.sort(function (a, b) { return a.localeCompare(b, 'de'); });
+		var html = '<option value="all">' + esc(allText) + '</option>';
+		for (var j = 0; j < names.length; j++) {
+			html += '<option value="' + escAttr(names[j]) + '">' + esc(names[j]) + '</option>';
+		}
+		sel.innerHTML = html;
+		if (prev && prev !== 'all') {
+			var has = false;
+			for (var k = 0; k < names.length; k++) {
+				if (names[k] === prev) { has = true; break; }
+			}
+			sel.value = has ? prev : 'all';
+		} else {
+			sel.value = 'all';
+		}
+	}
+
+	function fetchStatsPromise() {
+		if (statsLoaded) return Promise.resolve();
+		if (statsInflight) return statsInflight;
+		statsInflight = fetch(base + '/api/eu-urteile/stats')
+			.then(function (r) {
+				if (!r.ok) throw new Error('HTTP ' + r.status);
+				return r.json();
+			})
+			.then(function (data) {
+				populateAreaOptions(data || {});
+				statsLoaded = true;
+			})
+			.catch(function () {
+				statsLoaded = true;
+			})
+			.finally(function () {
+				statsInflight = null;
+			});
+		return statsInflight;
+	}
+
+	function renderCards() {
+		if (!cards) return;
+		cards.innerHTML = '';
+
+		var totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+		if (page > totalPages) page = totalPages;
+		if (page < 1) page = 1;
+
+		if (!items.length && !loading) {
+			var emptyF = document.createElement('p');
+			emptyF.className = 'gz-empty';
+			emptyF.textContent = i18n.euUrteileEmpty || '';
+			cards.appendChild(emptyF);
+			if (pagerMeta) pagerMeta.innerHTML = '';
+			if (btnPrev) btnPrev.disabled = true;
+			if (btnNext) btnNext.disabled = true;
+			if (pager) pager.hidden = totalCount === 0;
+			return;
+		}
+
+		if (pagerMeta) pagerMeta.innerHTML = pagerMetaHtml(page, totalPages, totalCount);
+		if (pager) pager.hidden = totalCount === 0;
+		if (btnPrev) btnPrev.disabled = page <= 1;
+		if (btnNext) btnNext.disabled = page >= totalPages || totalCount === 0;
+
+		var subjPrefix = i18n.euCaseLawSubject ? esc(i18n.euCaseLawSubject) + ': ' : '';
+
+		for (var i = 0; i < items.length; i++) {
+			var row = items[i] || {};
+			var celex = String(row.celex || '').trim();
+			var gericht = String(row.gericht || '').trim();
+			var kammer = String(row.kammer || '').trim();
+			var betreff = String(row.betreff || '').trim();
+			var rg = String(row.rechtsgebiet || '').trim();
+			var zus = pickSummary(row);
+			var datum = row.datum;
+			var eurlex = String(row.eurlex_url || '').trim();
+
+			var subj = truncateSubject(betreff, 150);
+			var summaryHtml = '';
+			if (zus) {
+				summaryHtml =
+					'<p class="gz-beschreibung">' + nl2br(zus) + '</p>' +
+					'<p class="gz-ai-disclaimer">' + esc(i18n.euAiDisclaimer || '') + '</p>';
+			}
+
+			var badges =
+				'<span class="gz-badge gz-badge--bundes">' + esc(i18n.euBadgeRegionEu || 'EU') + '</span>' +
+				'<span class="gz-badge gz-badge--court">' + esc(gericht || '-') + '</span>';
+			if (kammer) {
+				badges += '<span class="gz-badge gz-badge--court">' + esc(kammer) + '</span>';
+			}
+
+			var chipsHtml = '';
+			if (rg) {
+				chipsHtml += '<span class="gz-urteile-law-chip gz-urteile-chip--static">' + esc(rg) + '</span>';
+			}
+			if (celex) {
+				chipsHtml += '<span class="gz-urteile-law-chip gz-urteile-chip--static">' + esc(celex) + '</span>';
+			}
+
+			var subjectLine = '';
+			if (subj.display) {
+				subjectLine =
+					'<div class="gz-urteile-type" title="' + escAttr(subj.full) + '">' +
+					subjPrefix + esc(subj.display) +
+					'</div>';
+			}
+
+			var card = document.createElement('div');
+			card.className = 'gz-card gz-urteile-card gz-card--border-default';
+			card.innerHTML =
+				'<div class="gz-urteile-card-top">' +
+				'<div class="gz-urteile-badges">' + badges + '</div>' +
+				'<div class="gz-urteile-date">' + esc(formatDatumDisplay(datum)) + '</div>' +
+				'</div>' +
+				'<div class="gz-card-body">' +
+				'<h3 class="gz-urteile-az">' + esc(celex || '-') + '</h3>' +
+				subjectLine +
+				summaryHtml +
+				'<div class="gz-urteile-laws-chips">' + chipsHtml + '</div>' +
+				'<div class="gz-urteile-fulltext-row">' +
+				(eurlex
+					? '<a class="gz-urteile-fulltext-link" href="' + escAttr(eurlex) + '" target="_blank" rel="noopener noreferrer">' +
+					  esc(i18n.euViewOnEurlex || '') + '</a>'
+					: '') +
+				'</div>' +
+				'</div>';
+
+			cards.appendChild(card);
+		}
+	}
+
+	function fetchPage() {
+		var seq = ++fetchSeq;
+		loading = true;
+		showError('');
+		if (loadingEl) loadingEl.hidden = false;
+
+		fetchStatsPromise()
+			.then(function () {
+				return fetch(base + '/api/eu-urteile?' + buildQuery());
+			})
+			.then(function (r) {
+				if (seq !== fetchSeq) return null;
+				if (!r.ok) throw new Error('HTTP ' + r.status);
+				return r.json();
+			})
+			.then(function (data) {
+				if (data == null || seq !== fetchSeq) return;
+				var norm = normalizeListPayload(data);
+				items = norm.items;
+				totalCount = norm.total;
+				everLoaded = true;
+				renderCards();
+			})
+			.catch(function () {
+				if (seq !== fetchSeq) return;
+				showError(i18n.euLoadError || '');
+				items = [];
+				totalCount = 0;
+				renderCards();
+			})
+			.finally(function () {
+				if (seq !== fetchSeq) return;
+				loading = false;
+				if (loadingEl) loadingEl.hidden = true;
+			});
+	}
+
+	function ensureEuUrteileLoaded() {
+		if (!everLoaded) {
+			page = 1;
+			fetchPage();
+		}
+	}
+
+	function onFilterChange() {
+		filterSearch = el.filterSearch ? el.filterSearch.value : '';
+		filterCourt = el.filterCourt ? el.filterCourt.value : 'all';
+		filterArea = el.filterArea ? el.filterArea.value : 'all';
+		page = 1;
+		if (!panCase || panCase.hidden) return;
+		fetchPage();
+	}
+
+	if (el.filterToggle && el.filterPanel) {
+		var updateFilterPanel = function (open) {
+			el.filterPanel.classList.toggle('gz-urteile-filter-panel--open', open);
+			el.filterPanel.setAttribute('aria-hidden', String(!open));
+			el.filterToggle.setAttribute('aria-expanded', String(open));
+			el.filterToggle.textContent = open
+				? (i18n.euFilterCollapse || 'Filter')
+				: (i18n.euFilterExpand || 'Filter');
+		};
+		updateFilterPanel(false);
+		el.filterToggle.addEventListener('click', function (e) {
+			e.preventDefault();
+			var open = el.filterPanel.classList.contains('gz-urteile-filter-panel--open');
+			updateFilterPanel(!open);
+		});
+	}
+
+	var searchTimer = null;
+	if (el.filterSearch) {
+		el.filterSearch.addEventListener('input', function () {
+			clearTimeout(searchTimer);
+			searchTimer = setTimeout(function () {
+				filterSearch = el.filterSearch ? el.filterSearch.value : '';
+				page = 1;
+				if (!panCase || panCase.hidden) return;
+				fetchPage();
+			}, 400);
+		});
+	}
+	if (el.filterCourt) el.filterCourt.addEventListener('change', onFilterChange);
+	if (el.filterArea) el.filterArea.addEventListener('change', onFilterChange);
+
+	if (btnPrev) {
+		btnPrev.addEventListener('click', function () {
+			if (page > 1) {
+				page -= 1;
+				fetchPage();
+			}
+		});
+	}
+	if (btnNext) {
+		btnNext.addEventListener('click', function () {
+			var tp = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+			if (page < tp) {
+				page += 1;
+				fetchPage();
+			}
+		});
+	}
+
+	window.gzEnsureEuUrteileLoaded = ensureEuUrteileLoaded;
+
+	var euTab = document.getElementById('gz-tab-eu');
+	if (euTab && euTab.getAttribute('aria-selected') === 'true' && (window.gzEuActiveSubTab || 'legislation') === 'caselaw') {
+		ensureEuUrteileLoaded();
 	}
 })();
 </script>

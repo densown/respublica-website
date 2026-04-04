@@ -3162,6 +3162,56 @@ body{
   display: none !important;
 }
 
+/* EU-Recht: Sub-Tabs (Gesetzgebung / Rechtsprechung) */
+.gz-eu-subtabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.gz-eu-subtab-btn {
+  flex: 0 0 auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 4px 8px;
+  border: none;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #888;
+  transition: color 0.15s, border-color 0.15s;
+}
+.gz-eu-subtab-btn:hover {
+  color: #0f0f0f;
+}
+.gz-eu-subtab-btn.gz-eu-subtab-btn--active,
+.gz-eu-subtab-btn[aria-selected="true"] {
+  color: #c8102e;
+  border-bottom-color: #c8102e;
+}
+.gz-eu-subpanel[hidden] {
+  display: none !important;
+}
+[data-theme="dark"] .gz-eu-subtab-btn:not(.gz-eu-subtab-btn--active):not([aria-selected="true"]) {
+  color: #aaa;
+}
+[data-theme="dark"] .gz-eu-subtab-btn:hover {
+  color: rgba(245, 240, 232, 0.88);
+}
+[data-theme="dark"] .gz-eu-subtab-btn.gz-eu-subtab-btn--active,
+[data-theme="dark"] .gz-eu-subtab-btn[aria-selected="true"] {
+  color: #c8102e;
+  border-bottom-color: #c8102e;
+}
+
 /* Rechtsprechung Tab */
 .gz-urteile-wrap {
   overflow-x: hidden;
@@ -3424,4 +3474,14 @@ body{
   color: #b9d5ff;
   background: rgba(58, 90, 122, 0.24);
   border-color: rgba(185, 213, 255, 0.28);
+}
+
+#gz-eu-urteile-cards .gz-urteile-type {
+  text-transform: none;
+  font-size: 0.82rem;
+  color: #666;
+  font-style: italic;
+}
+[data-theme="dark"] #gz-eu-urteile-cards .gz-urteile-type {
+  color: #aaa;
 }
