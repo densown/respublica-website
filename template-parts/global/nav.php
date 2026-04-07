@@ -203,8 +203,17 @@
     });
 
     // Sprache
+    var cookie = document.cookie.match(/rp-lang=([^;]+)/);
+    var lang = cookie ? cookie[1] : 'de';
+    // Sync with URL
     var path = window.location.pathname;
-    var lang = (path.startsWith('/en/') || path === '/en') ? 'en' : 'de';
+    if (path.startsWith('/en/') && lang !== 'en') {
+      lang = 'en';
+      document.cookie = 'rp-lang=en;path=/;max-age=31536000';
+    } else if (!path.startsWith('/en/') && lang === 'en' && path !== '/en') {
+      lang = 'de';
+      document.cookie = 'rp-lang=de;path=/;max-age=31536000';
+    }
     root.setAttribute('data-lang', lang);
 
     function updateLangBtns(lang) {
@@ -216,15 +225,14 @@
     updateLangBtns(lang);
 
     function toggleLang() {
-      var path = window.location.pathname;
-      var isEn = path.startsWith('/en/') || path === '/en';
-      if (isEn) {
-        // Switch to DE: remove /en/ prefix
-        var newPath = path.replace(/^\/en\/?/, '/') || '/';
-        window.location.href = newPath;
+      var cookie = document.cookie.match(/rp-lang=([^;]+)/);
+      var current = cookie ? cookie[1] : 'de';
+      var next = current === 'de' ? 'en' : 'de';
+      document.cookie = 'rp-lang=' + next + ';path=/;max-age=31536000';
+      if (next === 'en') {
+        window.location.href = '/en/';
       } else {
-        // Switch to EN: add /en/ prefix
-        window.location.href = '/en' + (path === '/' ? '/' : path);
+        window.location.href = '/';
       }
     }
 

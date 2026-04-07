@@ -359,13 +359,8 @@ function respublica_reddit_icon($size = 20, $color = '#FF4500') {
 }
 
 function rp_t($de, $en) {
-  $lang = 'de';
-  if (isset($_COOKIE['rp-lang'])) {
-    $lang = $_COOKIE['rp-lang'] === 'en' ? 'en' : 'de';
-  } elseif (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-    $lang = strpos($_SERVER['HTTP_ACCEPT_LANGUAGE'], 'de') === 0 ? 'de' : 'en';
-  }
-  return $lang === 'en' ? $en : $de;
+  if (isset($_COOKIE['rp-lang']) && $_COOKIE['rp-lang'] === 'en') return $en;
+  return $de;
 }
 
 // Site Kit Consent Mode komplett deaktivieren
