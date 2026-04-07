@@ -5,10 +5,10 @@
        class="<?php echo is_category('breaking-news') ? 'active' : ''; ?>">News</a>
     <a href="<?php echo get_category_link(get_cat_ID('analysis')) ?: home_url('/category/analysis/'); ?>"
        class="<?php echo is_category('analysis') ? 'active' : ''; ?>">Analysis</a>
-    <a href="<?php echo get_category_link(get_cat_ID('usa')) ?: home_url('/category/usa/'); ?>"
-       class="<?php echo is_category('usa') ? 'active' : ''; ?>">USA</a>
     <a href="<?php echo get_category_link(get_cat_ID('germany')) ?: home_url('/category/germany/'); ?>"
        class="<?php echo is_category('germany') ? 'active' : ''; ?>"><?php echo rp_t('Deutschland', 'Germany'); ?></a>
+    <a href="<?php echo get_category_link(get_cat_ID('europe')) ?: home_url('/category/europe/'); ?>"
+       class="<?php echo is_category('europe') ? 'active' : ''; ?>">Europe</a>
     <a href="<?php echo get_category_link(get_cat_ID('world')) ?: home_url('/category/world/'); ?>"
        class="<?php echo is_category('world') ? 'active' : ''; ?>"><?php echo rp_t('Welt', 'World'); ?></a>
 
@@ -40,37 +40,23 @@
     </div>
   </div>
 
-  <div class="nav-external">
-    <a href="<?php echo get_option('respublica_worldmonitor_url', 'https://www.worldmonitor.app/'); ?>"
-       target="_blank" rel="noopener" class="nav-ext-link">WorldMonitor</a>
-    <a href="<?php echo get_option('respublica_electionmonitor_url', '/election-monitor/'); ?>"
-       target="_blank" rel="noopener" class="nav-ext-link nav-badge">
-      ElectionMonitor
-      <?php if (get_option('respublica_electionmonitor_badge', '1') === '1'): ?>
-        <span class="badge-new">NEU</span>
-      <?php endif; ?>
-    </a>
-    <a href="<?php echo home_url('/gesetze/'); ?>"
-       class="nav-ext-link nav-badge <?php echo is_page('gesetze') ? 'active' : ''; ?>">
-      <?php echo rp_t('Gesetze', 'Laws'); ?>
+    <div class="nav-external">
+    <a href="https://app.respublica.media"
+       target="_blank" rel="noopener" class="nav-ext-link nav-badge nav-dashboard">
+      Dashboard
       <span class="badge-new">NEU</span>
     </a>
     <?php if (get_option('respublica_show_reddit_nav', '1') === '1'): ?>
     <a href="<?php echo get_option('respublica_reddit_url', 'https://www.reddit.com/r/Res_Publica_DE/'); ?>"
        target="_blank" rel="noopener" class="nav-reddit">
       <?php echo respublica_reddit_icon(14, '#FF4500'); ?>
-      <?php echo rp_t('Reddit', 'Reddit'); ?>
+      Reddit
     </a>
     <?php endif; ?>
     <?php if (get_option('respublica_show_substack_nav', '1') === '1'): ?>
-    <a href="<?php echo get_option('respublica_substack_url', 'https://respublica.substack.com'); ?>"
+    <a href="<?php echo get_option('respublica_substack_url', 'https://substack.com/@respublicamgz'); ?>"
        target="_blank" rel="noopener" class="nav-substack">Newsletter ↗</a>
     <?php endif; ?>
-    <a href="<?php echo get_search_link(); ?>" class="nav-search" aria-label="Suche">
-      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="8" cy="8" r="6"/><path d="m14 14 4 4"/>
-      </svg>
-    </a>
   </div>
 
   <button class="hamburger" aria-label="Menü öffnen" aria-expanded="false">
@@ -113,32 +99,14 @@
         </button>
       </div>
 
-      <!-- PROMINENTE MONITOR-LINKS OBEN -->
+      <!-- DASHBOARD LINK -->
       <div class="mobile-monitors">
-        <a href="<?php echo get_option('respublica_worldmonitor_url','https://www.worldmonitor.app/'); ?>"
+        <a href="https://app.respublica.media"
            target="_blank" rel="noopener" class="mobile-monitor-btn">
-          <span class="monitor-icon">🌍</span>
+          <span class="monitor-icon">📊</span>
           <div>
-            <span class="monitor-title">WorldMonitor</span>
-            <span class="monitor-sub">Global conflicts, climate & more</span>
-          </div>
-          <span class="monitor-arrow">↗</span>
-        </a>
-        <a href="<?php echo get_option('respublica_electionmonitor_url','/election-monitor/'); ?>"
-           target="_blank" rel="noopener" class="mobile-monitor-btn">
-          <span class="monitor-icon">🗳</span>
-          <div>
-            <span class="monitor-title">ElectionMonitor</span>
-            <span class="monitor-sub">Elections worldwide</span>
-          </div>
-          <span class="monitor-arrow monitor-new">NEU ↗</span>
-        </a>
-        <a href="<?php echo home_url('/gesetze/'); ?>"
-           class="mobile-monitor-btn">
-          <span class="monitor-icon">🏛</span>
-          <div>
-            <span class="monitor-title"><?php echo rp_t('Gesetze', 'Laws'); ?></span>
-            <span class="monitor-sub"><?php echo rp_t('Gesetzesänderungen &amp; Synopsen', 'Legislative changes &amp; synopses'); ?></span>
+            <span class="monitor-title">Dashboard</span>
+            <span class="monitor-sub"><?php echo rp_t('Wahlen, Weltkarte, Gesetze & mehr', 'Elections, World Map, Laws & more'); ?></span>
           </div>
           <span class="monitor-arrow monitor-new">NEU ↗</span>
         </a>
@@ -160,8 +128,8 @@
       <nav class="mobile-nav">
         <a href="<?php echo home_url('/category/breaking-news/'); ?>">News</a>
         <a href="<?php echo home_url('/category/analysis/'); ?>">Analysis</a>
-        <a href="<?php echo home_url('/category/usa/'); ?>">USA</a>
         <a href="<?php echo home_url('/category/germany/'); ?>"><?php echo rp_t('Deutschland', 'Germany'); ?></a>
+        <a href="<?php echo home_url('/category/europe/'); ?>">Europe</a>
         <a href="<?php echo home_url('/category/world/'); ?>"><?php echo rp_t('Welt', 'World'); ?></a>
         <a href="<?php echo home_url('/category/guest-contributors/'); ?>"><?php echo rp_t('Gastbeiträge', 'Guest Contributors'); ?></a>
       </nav>
@@ -174,7 +142,7 @@
         <a href="<?php echo home_url('/datenschutz/'); ?>">Datenschutz</a>
       </nav>
 
-      <a href="<?php echo get_option('respublica_substack_url','https://respublica.substack.com'); ?>"
+      <a href="<?php echo get_option('respublica_substack_url','https://substack.com/@respublicamgz'); ?>"
          target="_blank" rel="noopener" class="mobile-newsletter-btn">
         <?php echo rp_t('Newsletter abonnieren ↗', 'Subscribe to Newsletter ↗'); ?>
       </a>
