@@ -10,7 +10,7 @@ $reddit_url = get_option('respublica_reddit_url','https://www.reddit.com/r/Res_P
       <p class="reddit-section-desc">
         <?php echo rp_t(
           'Res.Publica lebt von Debatte. Unsere Community auf Reddit diskutiert jeden Artikel — kritisch, informiert, direkt. Werde Teil davon.',
-          'Res.Publica thrives on debate. Our Reddit community discusses every article — critically, informedly, directly. Be part of it.'
+          rp_t('Res.Publica lebt von der Debatte. Unsere Reddit-Community diskutiert jeden Artikel - kritisch, informiert, direkt. Sei dabei.', 'Res.Publica thrives on debate. Our Reddit community discusses every article - critically, informedly, directly. Be part of it.')
         ); ?>
       </p>
       <a href="<?php echo esc_url($reddit_url); ?>" target="_blank" rel="noopener" class="reddit-join-btn">

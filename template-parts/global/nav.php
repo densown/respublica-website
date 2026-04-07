@@ -2,13 +2,13 @@
 
   <div class="nav-primary">
     <a href="<?php echo get_category_link(get_cat_ID('breaking-news')) ?: home_url('/category/breaking-news/'); ?>"
-       class="<?php echo is_category('breaking-news') ? 'active' : ''; ?>">News</a>
+       class="<?php echo is_category('breaking-news') ? 'active' : ''; ?>"><?php echo rp_t('Nachrichten', 'News'); ?></a>
     <a href="<?php echo get_category_link(get_cat_ID('analysis')) ?: home_url('/category/analysis/'); ?>"
-       class="<?php echo is_category('analysis') ? 'active' : ''; ?>">Analysis</a>
+       class="<?php echo is_category('analysis') ? 'active' : ''; ?>"><?php echo rp_t('Analyse', 'Analysis'); ?></a>
     <a href="<?php echo get_category_link(get_cat_ID('germany')) ?: home_url('/category/germany/'); ?>"
        class="<?php echo is_category('germany') ? 'active' : ''; ?>"><?php echo rp_t('Deutschland', 'Germany'); ?></a>
     <a href="<?php echo get_category_link(get_cat_ID('europe')) ?: home_url('/category/europe/'); ?>"
-       class="<?php echo is_category('europe') ? 'active' : ''; ?>">Europe</a>
+       class="<?php echo is_category('europe') ? 'active' : ''; ?>"><?php echo rp_t('Europa', 'Europe'); ?></a>
     <a href="<?php echo get_category_link(get_cat_ID('world')) ?: home_url('/category/world/'); ?>"
        class="<?php echo is_category('world') ? 'active' : ''; ?>"><?php echo rp_t('Welt', 'World'); ?></a>
 
@@ -126,10 +126,10 @@
       <!-- KATEGORIEN -->
       <div class="mobile-sidebar-section-label"><?php echo rp_t('Kategorien', 'Categories'); ?></div>
       <nav class="mobile-nav">
-        <a href="<?php echo home_url('/category/breaking-news/'); ?>">News</a>
-        <a href="<?php echo home_url('/category/analysis/'); ?>">Analysis</a>
+        <a href="<?php echo home_url('/category/breaking-news/'); ?>"><?php echo rp_t('Nachrichten', 'News'); ?></a>
+        <a href="<?php echo home_url('/category/analysis/'); ?>"><?php echo rp_t('Analyse', 'Analysis'); ?></a>
         <a href="<?php echo home_url('/category/germany/'); ?>"><?php echo rp_t('Deutschland', 'Germany'); ?></a>
-        <a href="<?php echo home_url('/category/europe/'); ?>">Europe</a>
+        <a href="<?php echo home_url('/category/europe/'); ?>"><?php echo rp_t('Europa', 'Europe'); ?></a>
         <a href="<?php echo home_url('/category/world/'); ?>"><?php echo rp_t('Welt', 'World'); ?></a>
         <a href="<?php echo home_url('/category/guest-contributors/'); ?>"><?php echo rp_t('Gastbeiträge', 'Guest Contributors'); ?></a>
       </nav>
