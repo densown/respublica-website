@@ -1,9 +1,11 @@
 <?php
 $hero_mode = get_option('respublica_hero_mode', 'auto');
 if ($hero_mode === 'featured') {
-  $args = ['category_name' => 'featured', 'posts_per_page' => 1];
+  $args = ['post_type' => 'post', 'category_name' => 'featured', 'posts_per_page' => 1];
+  if (function_exists('pll_current_language')) { $args['lang'] = pll_current_language(); }
 } else {
-  $args = ['posts_per_page' => 1];
+  $args = ['post_type' => 'post', 'posts_per_page' => 1];
+  if (function_exists('pll_current_language')) { $args['lang'] = pll_current_language(); }
 }
 $hero = new WP_Query($args);
 if (!$hero->have_posts()) return;

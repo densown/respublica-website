@@ -203,9 +203,8 @@
     });
 
     // Sprache
-    var storedLang = localStorage.getItem('rp-lang');
-    var browserLang = navigator.language || 'de';
-    var lang = storedLang || (browserLang.startsWith('de') ? 'de' : 'en');
+    var path = window.location.pathname;
+    var lang = (path.startsWith('/en/') || path === '/en') ? 'en' : 'de';
     root.setAttribute('data-lang', lang);
 
     function updateLangBtns(lang) {
@@ -217,13 +216,16 @@
     updateLangBtns(lang);
 
     function toggleLang() {
-      var current = root.getAttribute('data-lang') || 'de';
-      var next = current === 'de' ? 'en' : 'de';
-      root.setAttribute('data-lang', next);
-      localStorage.setItem('rp-lang', next);
-      document.cookie = 'rp-lang=' + next + ';path=/;max-age=31536000';
-      updateLangBtns(next);
-      setTimeout(function(){ location.reload(); }, 150);
+      var path = window.location.pathname;
+      var isEn = path.startsWith('/en/') || path === '/en';
+      if (isEn) {
+        // Switch to DE: remove /en/ prefix
+        var newPath = path.replace(/^\/en\/?/, '/') || '/';
+        window.location.href = newPath;
+      } else {
+        // Switch to EN: add /en/ prefix
+        window.location.href = '/en' + (path === '/' ? '/' : path);
+      }
     }
 
     document.querySelectorAll('.lang-toggle').forEach(function(btn){

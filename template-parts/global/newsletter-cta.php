@@ -1,5 +1,5 @@
 <?php
-$substack = get_option('respublica_substack_url', 'https://respublica.substack.com');
+$substack = get_option('respublica_substack_url', 'https://substack.com/@respublicamgz');
 ?>
 <div class="newsletter-cta">
   <div class="newsletter-cta-inner">

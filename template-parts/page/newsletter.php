@@ -6,7 +6,7 @@ declare(strict_types=1);
 <section class="rp-newsletter" aria-label="Newsletter">
   <div class="rp-newsletter__iframe">
     <iframe
-      src="https://respublica.substack.com/embed"
+      src="https://respublicamgz.substack.com/embed"
       width="100%"
       height="520"
       style="border:0;"
@@ -34,7 +34,7 @@ declare(strict_types=1);
     ?>
     <p style="margin-top:12px; font-family:'Source Serif 4', ui-serif, Georgia, 'Times New Roman', Times, serif; font-size:16px; color:var(--mid);">
       Du kannst den Newsletter auch direkt abonnieren auf
-      <a href="https://respublica.substack.com" target="_blank" rel="noopener noreferrer">respublica.substack.com</a>.
+      <a href="https://substack.com/@respublicamgz" target="_blank" rel="noopener noreferrer">substack.com/@respublicamgz</a>.
     </p>
   </div>
 </section>

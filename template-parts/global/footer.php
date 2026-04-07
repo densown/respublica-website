@@ -24,7 +24,7 @@
         <span class="footer-col-title"><?php echo rp_t('Plattformen', 'Platforms'); ?></span>
         <a href="<?php echo get_option('respublica_worldmonitor_url','https://www.worldmonitor.app/'); ?>" target="_blank" rel="noopener">WorldMonitor</a>
         <a href="<?php echo get_option('respublica_electionmonitor_url','/election-monitor/'); ?>" target="_blank" rel="noopener">ElectionMonitor</a>
-        <a href="<?php echo get_option('respublica_substack_url','https://respublica.substack.com'); ?>" target="_blank" rel="noopener">Newsletter</a>
+        <a href="<?php echo get_option('respublica_substack_url','https://substack.com/@respublicamgz'); ?>" target="_blank" rel="noopener">Newsletter</a>
         <a href="<?php echo get_option('respublica_reddit_url','https://www.reddit.com/r/Res_Publica_DE/'); ?>" target="_blank" rel="noopener">Reddit r/Res_Publica_DE</a>
       </div>
       <div class="footer-col">

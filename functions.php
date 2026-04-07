@@ -279,7 +279,7 @@ function respublica_options_render() {
     <form method="post">
       <?php wp_nonce_field('respublica_options'); ?>
       <table class="form-table">
-        <tr><th>Substack URL</th><td><input name="substack_url" type="url" class="regular-text" value="<?php echo esc_attr($get('substack_url','https://respublica.substack.com')); ?>"></td></tr>
+        <tr><th>Substack URL</th><td><input name="substack_url" type="url" class="regular-text" value="<?php echo esc_attr($get('substack_url','https://substack.com/@respublicamgz')); ?>"></td></tr>
         <tr><th>WorldMonitor URL</th><td><input name="worldmonitor_url" type="url" class="regular-text" value="<?php echo esc_attr($get('worldmonitor_url','https://www.worldmonitor.app/')); ?>"></td></tr>
         <tr><th>ElectionMonitor URL</th><td><input name="electionmonitor_url" type="url" class="regular-text" value="<?php echo esc_attr($get('electionmonitor_url','/election-monitor/')); ?>"></td></tr>
         <tr><th>Reddit URL</th><td><input name="reddit_url" type="url" class="regular-text" value="<?php echo esc_attr($get('reddit_url','https://www.reddit.com/r/Res_Publica_DE/')); ?>"></td></tr>
@@ -387,5 +387,16 @@ add_action('template_redirect', function() {
         return $html;
     });
 });
+
+// Force front-page.php for Polylang translated front page
+add_filter('template_include', function($template) {
+  if (function_exists('pll_current_language') && pll_current_language() === 'en') {
+    if (is_page(397)) {
+      $fp = get_stylesheet_directory() . '/front-page.php';
+      if (file_exists($fp)) return $fp;
+    }
+  }
+  return $template;
+}, 99);
 
 ?>

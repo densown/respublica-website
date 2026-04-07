@@ -28,7 +28,7 @@ get_template_part('template-parts/global/breaking-ticker');
         ); ?>
       </p>
       <div class="em-hero-actions">
-        <a href="<?php echo get_option('respublica_substack_url','https://respublica.substack.com'); ?>"
+        <a href="<?php echo get_option('respublica_substack_url','https://substack.com/@respublicamgz'); ?>"
            target="_blank" rel="noopener" class="em-btn-primary">
           <?php echo rp_t('Benachrichtigt werden wenn fertig ↗', 'Notify me when ready ↗'); ?>
         </a>
@@ -212,7 +212,7 @@ get_template_part('template-parts/global/breaking-ticker');
           'Subscribe to our newsletter and be the first to know when new features go live.'
         ); ?>
       </p>
-      <a href="<?php echo get_option('respublica_substack_url','https://respublica.substack.com'); ?>"
+      <a href="<?php echo get_option('respublica_substack_url','https://substack.com/@respublicamgz'); ?>"
          target="_blank" rel="noopener" class="em-btn-primary">
         <?php echo rp_t('Newsletter abonnieren ↗', 'Subscribe to Newsletter ↗'); ?>
       </a>

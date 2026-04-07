@@ -22,6 +22,7 @@ get_template_part('template-parts/global/breaking-ticker');
         'paged'          => $paged,
         'post__not_in'   => [get_option('page_on_front')]
       ];
+      if (function_exists('pll_current_language')) { $args['lang'] = pll_current_language(); }
       $q = new WP_Query($args);
       while ($q->have_posts()): $q->the_post();
         $post_cats = wp_get_post_categories(get_the_ID(), ['fields' => 'slugs']);

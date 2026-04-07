@@ -13,7 +13,7 @@ $guests = new WP_Query([
       <h2 class="guest-title"><?php echo rp_t('Stimmen aus dem Feld', 'Voices from the Field'); ?></h2>
       <p class="guest-desc">
         <?php echo rp_t(
-          'Dieser Bereich steht allen offen, die etwas Wichtiges zu sagen haben — Analysten, Forscher, Journalisten und informierte Bürger. Wir veröffentlichen Gastbeiträge zu Geopolitik, Demokratie und globalen Themen. Bei Interesse melde dich bei uns:',
+          rp_t('Dieser Bereich steht allen offen, die etwas Wichtiges zu sagen haben - Analysten, Forscher, Journalisten und informierte Bürger. Wir veröffentlichen Gastbeiträge zu Geopolitik, Demokratie und globalen Themen. Bei Interesse melde dich bei uns:', 'This space is open to anyone with something important to say. We publish guest contributions on geopolitics, democracy, and global affairs. Reach out to us at'),
           'This space is open to anyone with something important to say — analysts, researchers, journalists, and informed citizens. We publish guest contributions on geopolitics, democracy, and global affairs. If you\'d like to contribute, reach out to us at'
         ); ?>
         <a href="mailto:res.publica.magazin@gmail.com">res.publica.magazin@gmail.com</a>
